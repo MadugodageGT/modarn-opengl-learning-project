@@ -1,116 +1,343 @@
-#include<iostream>
-#include<glad/glad.h>
-#include<GLFW/glfw3.h>
+#include <GLFW/glfw3.h>
+#include <vector>
+#include <cmath>
+#include <cstdlib>
+#include <ctime>
 
-// Vertex Shader source code
-const char* vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"void main()\n"
-"{\n"
-"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-"}\0";
-//Fragment Shader source code
-const char* fragmentShaderSource = "#version 330 core\n"
-"out vec4 FragColor;\n"
-"void main()\n"
-"{\n"
-"   FragColor = vec4(0.8f, 0.3f, 0.02f, 1.0f);\n"
-"}\n\0";
+const float M_PI = 3.14159265358979323846f;
 
+// Simple 2D point structure
+struct Point {
+    float x, y;
+    Point(float x, float y) : x(x), y(y) {}
+};
 
+// Color structure
+struct Color {
+    float r, g, b;
+    Color(float r, float g, float b) : r(r), g(g), b(b) {}
+};
 
-int main()
-{
-	glfwInit();
+// Player class
+class Player {
+public:
+    Point position;
+    Color color;
+    float size;
 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // since we use the modern functions of openGL we use core
+    Player(float x, float y) : position(x, y), color(0.2f, 0.6f, 0.9f), size(0.03f) {}
 
-	GLFWwindow* window = glfwCreateWindow(800, 800, "OpenGL Window", NULL, NULL);
+    void draw() {
+        glColor3f(color.r, color.g, color.b);
+        glBegin(GL_TRIANGLE_FAN);
+        glVertex2f(position.x, position.y);
+        for (int i = 0; i <= 20; i++) {
+            float angle = 2.0f * M_PI * float(i) / 20.0f;
+            glVertex2f(position.x + size * cos(angle), position.y + size * sin(angle));
+        }
+        glEnd();
+    }
+};
 
-	if(window == NULL)
-	{
-		std::cout << "Failed to create GLFW window" << std::endl;
-		glfwTerminate();
-		return -1;
-	}
-	glfwMakeContextCurrent(window); // make the window's context current
+// Plant class
+class Plant {
+public:
+    Point position;
+    Color color;
+    float growth;
+    bool isGrown;
 
-	gladLoadGL(); // load GLAD so that it can manage OpenGL function pointers
+    Plant(float x, float y) : position(x, y), color(0.2f, 0.8f, 0.3f), growth(0.0f), isGrown(false) {}
 
-	glViewport(0, 0, 800, 800); // set the viewport to the size of the window
+    void draw() {
+        if (growth < 0.3f) {
+            // Seed
+            glColor3f(0.5f, 0.35f, 0.05f);
+            glBegin(GL_QUADS);
+            glVertex2f(position.x - 0.01f, position.y - 0.01f);
+            glVertex2f(position.x + 0.01f, position.y - 0.01f);
+            glVertex2f(position.x + 0.01f, position.y + 0.01f);
+            glVertex2f(position.x - 0.01f, position.y + 0.01f);
+            glEnd();
+        }
+        else if (growth < 0.7f) {
+            // Growing plant
+            glColor3f(0.2f, 0.7f, 0.2f);
+            glBegin(GL_TRIANGLES);
+            glVertex2f(position.x, position.y + 0.02f);
+            glVertex2f(position.x - 0.015f, position.y - 0.01f);
+            glVertex2f(position.x + 0.015f, position.y - 0.01f);
+            glEnd();
+        }
+        else {
+            // Fully grown plant
+            glColor3f(0.1f, 0.8f, 0.1f);
+            glBegin(GL_TRIANGLES);
+            glVertex2f(position.x, position.y + 0.035f);
+            glVertex2f(position.x - 0.02f, position.y - 0.01f);
+            glVertex2f(position.x + 0.02f, position.y - 0.01f);
 
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
+            glColor3f(0.8f, 0.8f, 0.1f);
+            glBegin(GL_QUADS);
+            glVertex2f(position.x - 0.008f, position.y + 0.02f);
+            glVertex2f(position.x + 0.008f, position.y + 0.02f);
+            glVertex2f(position.x + 0.008f, position.y + 0.03f);
+            glVertex2f(position.x - 0.008f, position.y + 0.03f);
+            glEnd();
+        }
+    }
 
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
+    void update() {
+        if (growth < 1.0f) {
+            growth += 0.001f;
+            if (growth >= 1.0f) isGrown = true;
+        }
+    }
+};
 
-	GLuint shaderProgram = glCreateProgram(); // create a shader program
-	
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
+// Animal class
+class Animal {
+public:
+    Point position;
+    Color color;
+    float size;
+    bool isPredator;
 
-	glDeleteShader(vertexShader); // delete the vertex shader as it is no longer needed
-	glDeleteShader(fragmentShader); // delete the fragment shader as it is no longer needed
+    Animal(float x, float y, bool predator = false) :
+        position(x, y),
+        isPredator(predator),
+        size(0.02f),
+        color(predator ? Color(0.8f, 0.2f, 0.2f) : Color(0.8f, 0.6f, 0.4f))
+    {}
 
-	// Define the vertices of the triangle
-	GLfloat vertices[] = {
-		// positions
-		-0.5f, -0.5f, 0.0f, // bottom left
-		 0.5f, -0.5f, 0.0f, // bottom right
-		 0.0f,  0.5f, 0.0f  // top
-	}; //since we here use normalized coordionate system. coordinates should within [-1.0, 1.0] range
+    void draw() {
+        glColor3f(color.r, color.g, color.b);
+        glBegin(GL_TRIANGLE_FAN);
+        glVertex2f(position.x, position.y);
+        for (int i = 0; i <= 10; i++) {
+            float angle = 2.0f * M_PI * float(i) / 10.0f;
+            glVertex2f(position.x + size * cos(angle), position.y + size * sin(angle));
+        }
+        glEnd();
 
+        if (isPredator) {
+            // Draw eyes
+            glColor3f(1.0f, 1.0f, 1.0f);
+            glBegin(GL_POINTS);
+            glVertex2f(position.x - 0.008f, position.y + 0.008f);
+            glVertex2f(position.x + 0.008f, position.y + 0.008f);
+            glEnd();
+        }
+    }
+};
 
-	GLuint VAO, VBO; // Vertex Buffer Object and Vertex Array Object
-	glGenVertexArrays(1, &VAO); // generate a vertex array object
-	glGenBuffers(1, &VBO); //
+// Game state
+bool isDay = true;
+float dayNightProgress = 0.0f;
+std::vector<Plant> plants;
+std::vector<Animal> animals;
+Player player(0.0f, 0.0f);
 
-	glBindVertexArray(VAO); // bind the vertex array object
+// Draw a rounded rectangle
+void drawRoundedRect(float x, float y, float width, float height, float radius, Color color) {
+    glColor3f(color.r, color.g, color.b);
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(x, y); // Center
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind the vertex buffer object
+    for (int i = 0; i <= 20; i++) {
+        float angle = 2.0f * M_PI * float(i) / 20.0f;
+        glVertex2f(x + radius * cos(angle), y + radius * sin(angle));
+    }
+    glEnd();
 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // copy the vertex data to the buffer
+    // Draw the main rectangle body
+    glBegin(GL_QUADS);
+    glVertex2f(x - width / 2 + radius, y - height / 2);
+    glVertex2f(x + width / 2 - radius, y - height / 2);
+    glVertex2f(x + width / 2 - radius, y + height / 2);
+    glVertex2f(x - width / 2 + radius, y + height / 2);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); // specify the layout of the vertex data
-	glEnableVertexAttribArray(0); // enable the vertex attribute at index 0
+    glVertex2f(x - width / 2, y - height / 2 + radius);
+    glVertex2f(x + width / 2, y - height / 2 + radius);
+    glVertex2f(x + width / 2, y + height / 2 - radius);
+    glVertex2f(x - width / 2, y + height / 2 - radius);
+    glEnd();
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0); // unbind the vertex buffer object
-	glBindVertexArray(0); // unbind the vertex array object
+    // Draw the side rectangles
+    glBegin(GL_QUADS);
+    glVertex2f(x - width / 2, y - height / 2 + radius);
+    glVertex2f(x - width / 2 + radius, y - height / 2 + radius);
+    glVertex2f(x - width / 2 + radius, y + height / 2 - radius);
+    glVertex2f(x - width / 2, y + height / 2 - radius);
 
+    glVertex2f(x + width / 2 - radius, y - height / 2 + radius);
+    glVertex2f(x + width / 2, y - height / 2 + radius);
+    glVertex2f(x + width / 2, y + height / 2 - radius);
+    glVertex2f(x + width / 2 - radius, y + height / 2 - radius);
+    glEnd();
+}
 
-	//glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // set the clear color to a dark blue
-	//glClear(GL_COLOR_BUFFER_BIT); // clear the color buffer
-	//glfwSwapBuffers(window); // swap the front and back buffers to display the cleared color
+// Draw the UI
+void drawUI() {
+    // Draw day/night indicator
+    float timeColor = isDay ? 0.9f : 0.3f;
+    glColor3f(timeColor, timeColor, 0.1f);
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(-0.9f, 0.9f);
+    for (int i = 0; i <= 20; i++) {
+        float angle = 2.0f * M_PI * float(i) / 20.0f;
+        glVertex2f(-0.9f + 0.03f * cos(angle), 0.9f + 0.03f * sin(angle));
+    }
+    glEnd();
 
-	//MAIN WHILE LOOP
-	while (!glfwWindowShouldClose(window)) // keep the window open until it is closed by the user
-	{
+    // Draw inventory background
+    drawRoundedRect(0.0f, -0.9f, 0.8f, 0.1f, 0.03f, Color(0.3f, 0.3f, 0.4f));
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT); 
-		glUseProgram(shaderProgram); // use the shader program	
-		glBindVertexArray(VAO); // bind the vertex array object
-		// draw the triangle
-		glDrawArrays(GL_TRIANGLES, 0, 3); // draw the triangle using the vertex data in the VBO
+    // Draw inventory items
+    glColor3f(0.5f, 0.35f, 0.05f);
+    glBegin(GL_QUADS);
+    glVertex2f(-0.3f, -0.93f);
+    glVertex2f(-0.27f, -0.93f);
+    glVertex2f(-0.27f, -0.87f);
+    glVertex2f(-0.3f, -0.87f);
+    glEnd();
 
-		glfwSwapBuffers(window); // swap the front and back buffers
+    glColor3f(0.2f, 0.7f, 0.2f);
+    glBegin(GL_TRIANGLES);
+    glVertex2f(-0.2f, -0.87f);
+    glVertex2f(-0.23f, -0.93f);
+    glVertex2f(-0.17f, -0.93f);
+    glEnd();
 
+    glColor3f(0.8f, 0.2f, 0.2f);
+    glBegin(GL_TRIANGLES);
+    glVertex2f(-0.1f, -0.87f);
+    glVertex2f(-0.13f, -0.93f);
+    glVertex2f(-0.07f, -0.93f);
+    glEnd();
 
-		glfwPollEvents();  // process events like keyboard input, mouse movement, etc. (GLFW events)
-	}
+    glColor3f(0.8f, 0.8f, 0.2f);
+    glBegin(GL_QUADS);
+    glVertex2f(0.0f, -0.93f);
+    glVertex2f(0.03f, -0.93f);
+    glVertex2f(0.03f, -0.87f);
+    glVertex2f(0.0f, -0.87f);
+    glEnd();
 
-	// free resourses 
-	glDeleteVertexArrays(1, &VAO); // delete the vertex array object
-	glDeleteBuffers(1, &VBO); // delete the vertex buffer object
-	glDeleteProgram(shaderProgram); // delete the shader program
+    glColor3f(0.4f, 0.4f, 0.8f);
+    glBegin(GL_QUADS);
+    glVertex2f(0.1f, -0.93f);
+    glVertex2f(0.13f, -0.93f);
+    glVertex2f(0.13f, -0.87f);
+    glVertex2f(0.1f, -0.87f);
+    glEnd();
+}
 
-	glfwDestroyWindow(window); // destroy the window before exiting
-	glfwTerminate();
-	return 0;
+// Draw the game scene
+void drawScene() {
+    // Draw background based on time of day
+    if (isDay) {
+        glClearColor(0.5f, 0.7f, 1.0f, 1.0f);
+    }
+    else {
+        glClearColor(0.1f, 0.1f, 0.3f, 1.0f);
+    }
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // Draw ground
+    if (isDay) {
+        glColor3f(0.6f, 0.5f, 0.2f);
+    }
+    else {
+        glColor3f(0.3f, 0.25f, 0.1f);
+    }
+    glBegin(GL_QUADS);
+    glVertex2f(-1.0f, -1.0f);
+    glVertex2f(1.0f, -1.0f);
+    glVertex2f(1.0f, -0.6f);
+    glVertex2f(-1.0f, -0.6f);
+    glEnd();
+
+    // Draw plants
+    for (auto& plant : plants) {
+        plant.draw();
+    }
+
+    // Draw animals
+    for (auto& animal : animals) {
+        animal.draw();
+    }
+
+    // Draw player
+    player.draw();
+
+    // Draw UI
+    drawUI();
+}
+
+// Update game state
+void updateGame() {
+    // Update day/night cycle
+    dayNightProgress += 0.0005f;
+    if (dayNightProgress >= 1.0f) {
+        dayNightProgress = 0.0f;
+        isDay = !isDay;
+
+        // Spawn predators at night
+        if (!isDay) {
+            animals.push_back(Animal(0.5f, -0.7f, true));
+            animals.push_back(Animal(-0.5f, -0.7f, true));
+        }
+    }
+
+    // Update plants
+    for (auto& plant : plants) {
+        plant.update();
+    }
+
+    // Randomly add plants for demonstration
+    if (rand() % 1000 < 5 && plants.size() < 10) {
+        plants.push_back(Plant((rand() % 100 - 50) / 100.0f, -0.7f));
+    }
+
+    // Randomly add animals for demonstration
+    if (rand() % 1000 < 3 && animals.size() < 5) {
+        animals.push_back(Animal((rand() % 100 - 50) / 100.0f, -0.7f));
+    }
+}
+
+int main() {
+    srand(time(0));
+
+    GLFWwindow* window;
+
+    // Initialize the library
+    if (!glfwInit()) {
+        return -1;
+    }
+
+    // Create a windowed mode window and its OpenGL context
+    window = glfwCreateWindow(800, 600, "FarmLife Adventure", NULL, NULL);
+    if (!window) {
+        glfwTerminate();
+        return -1;
+    }
+
+    // Make the window's context current
+    glfwMakeContextCurrent(window);
+
+    // Main loop
+    while (!glfwWindowShouldClose(window)) {
+        updateGame();
+        drawScene();
+
+        // Swap front and back buffers
+        glfwSwapBuffers(window);
+
+        // Poll for and process events
+        glfwPollEvents();
+    }
+
+    glfwTerminate();
+    return 0;
 }
