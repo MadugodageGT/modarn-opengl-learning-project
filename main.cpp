@@ -19,9 +19,15 @@ const char* fragmentShaderSource = "#version 330 core\n"
 
 
 float vertices[] = {
-   -0.5f, -0.5f, 0.0f,
-   0.5f, -0.5f, 0.0f,
-   0.0f, 0.5f, 0.0f
+0.5f, 0.5f, 0.0f, // top right
+0.5f, -0.5f, 0.0f, // bottom right
+-0.5f, -0.5f, 0.0f, // bottom left
+-0.5f, 0.5f, 0.0f // top left
+};
+
+unsigned int indices[] = {
+	0,1,3,
+	1,2,3
 };
 
 
@@ -81,10 +87,17 @@ int main() {
 	unsigned int VBO; // create vertex buffer object
 	glGenBuffers(1, &VBO); // generate vbo ID
 
+	unsigned int EBO;
+	glGenBuffers(1, &EBO); // generate EBO
+
 	glBindVertexArray(VAO); // bind the VAO
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind the buffer to the GL_ARRAY_BUFFER target
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //copy user defined vertex data to the target
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
@@ -151,9 +164,12 @@ int main() {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
+
 		glUseProgram(shaderProgram);
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -161,6 +177,7 @@ int main() {
 	
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &EBO);
 	glDeleteProgram(shaderProgram);
 
 
