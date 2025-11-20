@@ -20,21 +20,6 @@ const char* fragmentShaderSource = "#version 330 core\n"
 
 
 
-float triangleA[] = {
-	-0.5f, -0.5f, 0.0f, // left
-	-0.1f, -0.5f, 0.0f, // right
-	-0.3f, 0.5f, 0.0f,// top
-};
-
-
-float triangleB[] = {
-	0.1f, -0.5f, 0.0f, // left
-	0.5f, -0.5f, 0.0f, // right
-	0.3f, 0.5f, 0.0f // top
-};
-
-
-
 float vertices[] = {
 0.5f, 0.5f, 0.0f, // top right
 0.5f, -0.5f, 0.0f, // bottom right
@@ -82,21 +67,21 @@ int main() {
 
 	//SETUP for the triangle 1
 	//_______________________________________________________________________________________________
-	unsigned int VAO, VBO;// EBO;
+	unsigned int VAO, VBO, EBO;
 	
 	glGenVertexArrays(1, &VAO); // generate VAO ID
 
 
 	glGenBuffers(1, &VBO); // generate vbo ID
-	//glGenBuffers(1, &EBO); // generate EBO
+	glGenBuffers(1, &EBO); // generate EBO
 
 	glBindVertexArray(VAO); // bind the VAO
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind the buffer to the GL_ARRAY_BUFFER target
-	glBufferData(GL_ARRAY_BUFFER, sizeof(triangleA), triangleA, GL_STATIC_DRAW); //copy user defined vertex data to the target
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); //copy user defined vertex data to the target
 
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -105,23 +90,6 @@ int main() {
 
 	
 	
-	//SETUP for the triangle 2
-	//_______________________________________________________________________________________________
-	unsigned int VAO2, VBO2;
-
-	glGenVertexArrays(1, &VAO2);
-
-	glGenBuffers(1, &VBO2);
-
-	glBindVertexArray(VAO2);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(triangleB), triangleB, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3* sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-
 
 	//_______________________________________________________________________________________________
 
@@ -161,6 +129,7 @@ int main() {
 		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
 
 	}
+
 	
 	
 	//shader program
@@ -183,6 +152,7 @@ int main() {
 	glDeleteShader(fragmentShader);
 
 
+
 	//_______________________________________________________________________________________________
 
 
@@ -195,18 +165,13 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
 
 		glUseProgram(shaderProgram);
-		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES,0,3);
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-		glBindVertexArray(VBO2);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -214,7 +179,7 @@ int main() {
 	
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
-	//glDeleteBuffers(1, &EBO);
+	glDeleteBuffers(1, &EBO);
 	glDeleteProgram(shaderProgram);
 
 
