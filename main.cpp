@@ -22,15 +22,13 @@ const char* fragmentShaderSource = "#version 330 core\n"
 
 
 float vertices[] = {
-0.5f, 0.5f, 0.0f, // top right
-0.5f, -0.5f, 0.0f, // bottom right
--0.5f, -0.5f, 0.0f, // bottom left
--0.5f, 0.5f, 0.0f // top left
+	-0.5f, -0.5f, 0.0f,
+	0.5f, -0.5f, 0.0f,
+	0.0f,  0.5f, 0.0f,
 };
 
 unsigned int indices[] = {
-	0,1,3,
-	1,2,3
+	0,1,2
 };
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -159,15 +157,17 @@ int main() {
 
 		glUseProgram(shaderProgram); //activate the shader program befor call any uniforms
 
+
+		//UPDATE THE SHADER UNIFORMS
 		float timeValue = glfwGetTime();
 		float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
 		int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
 		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 
 
-
+		//RENDER
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES,0,3);
 
