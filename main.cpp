@@ -149,22 +149,6 @@ int main() {
 	//_______________________________________________________________________________________________
 
 
-	//Uniforms
-
-	//float timeValue = glfwGetTime();
-	//float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-	//int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-	//glUseProgram(shaderProgram);
-	//glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-
-
-	//______________________________________________________________________________________________
-
-
-
-
-
-
 
 	//main rendering loop
 	while (!glfwWindowShouldClose(window)) {
@@ -173,6 +157,7 @@ int main() {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		glUseProgram(shaderProgram); //activate the shader program befor call any uniforms
 
 		float timeValue = glfwGetTime();
 		float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
@@ -180,7 +165,7 @@ int main() {
 		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 
 
-		glUseProgram(shaderProgram);
+
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(VAO);
