@@ -22,15 +22,13 @@ const char* fragmentShaderSource = "#version 330 core\n"
 
 
 float vertices[] = {
-0.5f, 0.5f, 0.0f, // top right
+0.0f, 0.5f, 0.0f,  // top
 0.5f, -0.5f, 0.0f, // bottom right
--0.5f, -0.5f, 0.0f, // bottom left
--0.5f, 0.5f, 0.0f // top left
+-0.5f, -0.5f, 0.0f // bottom left
 };
 
 unsigned int indices[] = {
-	0,1,3,
-	1,2,3
+	0,1,2, // first triangle
 };
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -149,22 +147,6 @@ int main() {
 	//_______________________________________________________________________________________________
 
 
-	//Uniforms
-
-	//float timeValue = glfwGetTime();
-	//float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
-	//int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-	//glUseProgram(shaderProgram);
-	//glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-
-
-	//______________________________________________________________________________________________
-
-
-
-
-
-
 
 	//main rendering loop
 	while (!glfwWindowShouldClose(window)) {
@@ -182,9 +164,7 @@ int main() {
 
 		glUseProgram(shaderProgram);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES,0,3);
+		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
 
 
 		glfwSwapBuffers(window);
