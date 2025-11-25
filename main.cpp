@@ -78,6 +78,7 @@ int main() {
 	Shader ourShader("default.vert", "default.frag");
 
 
+
 	//main rendering loop
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
@@ -85,7 +86,8 @@ int main() {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-
+		float time = glfwGetTime();
+		ourShader.setFloat("time", time);
 	
 		ourShader.use();
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
