@@ -90,9 +90,9 @@ int main() {
 	glEnableVertexAttribArray(1);
 	//_______________________________________________________________________________________________
 
+	//shader
 
 	Shader ourShader("default.vert", "default.frag");
-
 
 
 	//main rendering loop
