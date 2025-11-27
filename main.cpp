@@ -91,10 +91,10 @@ int main() {
 
 	//textures
 
-	unsigned int texture;
-	glGenTextures(1, &texture);
+	unsigned int texture1;
+	glGenTextures(1, &texture1);
 
-	glBindTexture(GL_TEXTURE_2D, texture);
+	glBindTexture(GL_TEXTURE_2D, texture1);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -104,9 +104,34 @@ int main() {
 	int width, height, nrChannels;
 	unsigned char* data = stbi_load("assets/textures/brick_texture.jpg", &width, &height, &nrChannels, 0);
 
+
 	if (data) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
+
+	}
+	else {
+		std::cout << "Failed to load texture" << std::endl;
+
+	}
+	stbi_image_free(data);
+
+	unsigned int texture2;
+	glGenTextures(1, &texture2);
+
+	glBindTexture(GL_TEXTURE_2D, texture2);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	data = stbi_load("assets/textures/pngegg.png", &width, &height, &nrChannels, 0);
+
+	if (data) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
 	}
 	else {
 		std::cout << "Failed to load texture" << std::endl;
@@ -122,6 +147,11 @@ int main() {
 	Shader ourShader("default.vert", "default.frag");
 
 
+	ourShader.use();
+	ourShader.setInt("texture1", 0);
+	ourShader.setInt("texture2", 1);
+
+
 	//main rendering loop
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
@@ -133,7 +163,11 @@ int main() {
 	
 		ourShader.use();
 
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
