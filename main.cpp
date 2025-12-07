@@ -2,7 +2,9 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <stb/stb_image.h>
-
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "Shader.h"
 
@@ -32,6 +34,7 @@ void processInput(GLFWwindow* window);
 
 
 int main() {
+
 
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -153,7 +156,19 @@ int main() {
 	ourShader.setInt("texture2", 1);
 
 
-	//main rendering loop
+	//transformations_______________________________________________________________________________
+
+	glm::mat4 trans = glm::mat4(1.0f);
+	trans = glm::rotate(trans, glm::radians(90.f), glm::vec3(0.0f,0.0f, 1.0f));
+	trans = glm::scale(trans, glm::vec3(0.5f, 0.5f, 0.5f));
+
+
+	unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+
+
+	//main rendering loop__________________________________________________________________________
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
 
