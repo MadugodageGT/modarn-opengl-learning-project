@@ -158,9 +158,31 @@ int main() {
 
 	//transformations_______________________________________________________________________________
 
+	glm::mat4 trans = glm::mat4(1.0f);
+	//trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+	//trans = glm::rotate(trans, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+	ourShader.setTransform("transform", trans);
 
 
+	//matrices required to go 3D
 
+	//model matrix - transformation we would like to apply to all the objects in the world
+
+	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	
+	//View matrix
+	glm::mat4 view = glm::mat4(1.0f);
+	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+
+	//projectiona matrix
+	glm::mat4 projection;
+	projection = glm::perspective(glm::radians(45.0f), 800.0f/ 600.0f, 0.1f, 100.0f);
+
+	ourShader.setTransform("model", model);
+	ourShader.setTransform("view", view);
+	ourShader.setTransform("projection", projection);
 
 
 
@@ -176,11 +198,7 @@ int main() {
 		ourShader.use();
 
 
-		glm::mat4 trans = glm::mat4(1.0f);
-		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
 
-		ourShader.setTransform("transform", trans);
 
 
 		glActiveTexture(GL_TEXTURE0);
