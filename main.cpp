@@ -175,7 +175,6 @@ int main() {
 
 
 	//shader
-
 	Shader ourShader("default.vert", "default.frag");
 
 
