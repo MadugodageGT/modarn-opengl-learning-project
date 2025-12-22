@@ -192,6 +192,10 @@ int main() {
 
 	glEnable(GL_DEPTH_TEST);
 
+
+	float camRadius = 10.0f;
+
+
 	//main rendering loop__________________________________________________________________________
 	while (!glfwWindowShouldClose(window)) {
 		processInput(window);
@@ -209,7 +213,14 @@ int main() {
 		glm::mat4 projection;
 
 
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		//view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+
+		float camX = sin(glfwGetTime()) * camRadius;
+		float camZ = cos(glfwGetTime()) * camRadius;
+
+
+
+		view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.70f, 1.0f, 0.0f));
 		projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
