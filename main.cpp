@@ -9,6 +9,13 @@
 #include "Shader.h"
 
 
+//camera variables
+
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -220,7 +227,7 @@ int main() {
 
 
 
-		view = glm::lookAt(glm::vec3(camX, 0.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		view = glm::lookAt(cameraPos, cameraPos+cameraFront, cameraUp);
 		model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.70f, 1.0f, 0.0f));
 		projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
@@ -279,10 +286,22 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 //handle inputs
 void processInput(GLFWwindow* window) {
 
+	const float cameraSpeed = 0.0025f; // adjust accordingly
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		cameraPos += cameraSpeed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		cameraPos -= cameraSpeed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+
+
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 
 		glfwSetWindowShouldClose(window, true);
 	}
+
 }
 
 
