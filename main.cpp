@@ -15,7 +15,9 @@ glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-
+//delta time variables
+float deltaTime = 0.0f;	// time between current frame and last frame
+float lastFrame = 0.0f;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
@@ -205,12 +207,17 @@ int main() {
 
 	//main rendering loop__________________________________________________________________________
 	while (!glfwWindowShouldClose(window)) {
+
+
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+
 		processInput(window);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
 
 	
 		ourShader.use();
@@ -286,7 +293,10 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 //handle inputs
 void processInput(GLFWwindow* window) {
 
-	const float cameraSpeed = 0.0025f; // adjust accordingly
+	const float cameraSpeed = 2.5f * deltaTime; // adjust accordingly
+
+
+
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		cameraPos += cameraSpeed * cameraFront;
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
