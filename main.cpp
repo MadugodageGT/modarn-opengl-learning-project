@@ -22,6 +22,7 @@ float lastFrame = 0.0f;
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
 int main() {
 
@@ -228,9 +229,10 @@ int main() {
 
 
 		//view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		glfwSetCursorPosCallback(window, mouse_callback);
 
-		float camX = sin(glfwGetTime()) * camRadius;
-		float camZ = cos(glfwGetTime()) * camRadius;
+		void mouse_callback(GLFWwindow * window, double xpos, double ypos);
 
 
 
@@ -315,4 +317,41 @@ void processInput(GLFWwindow* window) {
 }
 
 
+//mouse callback function
 
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+
+	static bool firstMouse = true;
+	static float lastX = 400, lastY = 300;
+	static float yaw = -90.0f;
+	static float pitch = 0.0f;
+
+	if (firstMouse) {
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+	lastX = xpos;
+	lastY = ypos;
+
+	const float sensitivity = 0.1f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yaw += xoffset;
+	pitch += yoffset;
+
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+
+	glm::vec3 front;
+	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	front.y = sin(glm::radians(pitch));
+	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	cameraFront = glm::normalize(front);
+}
