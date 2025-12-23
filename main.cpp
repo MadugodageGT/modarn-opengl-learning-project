@@ -15,6 +15,13 @@ glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
+bool firstMouse = true;
+float lastX = 400, lastY = 300;
+float yaw = -90.0f;
+float pitch = 0.0f;
+
+float fov = 45.0f;
+
 //delta time variables
 float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
@@ -24,6 +31,10 @@ void processInput(GLFWwindow* window);
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
+
+//main function
 int main() {
 
 
@@ -231,14 +242,12 @@ int main() {
 		//view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		glfwSetCursorPosCallback(window, mouse_callback);
-
-		void mouse_callback(GLFWwindow * window, double xpos, double ypos);
-
+		glfwSetScrollCallback(window, scroll_callback);
 
 
 		view = glm::lookAt(cameraPos, cameraPos+cameraFront, cameraUp);
 		model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.70f, 1.0f, 0.0f));
-		projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
 
 		ourShader.setTransform("model", model);
 		ourShader.setTransform("view", view);
@@ -321,10 +330,7 @@ void processInput(GLFWwindow* window) {
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 
-	static bool firstMouse = true;
-	static float lastX = 400, lastY = 300;
-	static float yaw = -90.0f;
-	static float pitch = 0.0f;
+
 
 	if (firstMouse) {
 		lastX = xpos;
@@ -354,4 +360,17 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	front.y = sin(glm::radians(pitch));
 	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 	cameraFront = glm::normalize(front);
+}
+
+//scroll callback function
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+
+
+
+	fov -= (float)yoffset;
+	if (fov < 1.0f)
+		fov = 1.0f;
+	if (fov > 45.0f)
+		fov = 45.0f;
 }
