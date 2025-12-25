@@ -164,6 +164,8 @@
   <ItemGroup>
     <None Include="default.frag" />
     <None Include="default.vert" />
+    <None Include="grid.frag" />
+    <None Include="grid.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\textures\brick_texture.jpg" />

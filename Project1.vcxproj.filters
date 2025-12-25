@@ -49,6 +49,12 @@
     <None Include="default.frag">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="grid.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="grid.frag">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\textures\brick_texture.jpg">

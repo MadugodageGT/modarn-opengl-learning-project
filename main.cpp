@@ -19,11 +19,15 @@ struct Sphere {
 	std::vector<unsigned int> indices;
 };
 
+//vector to save grid vertices
+std::vector<float> gridVertices;
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
+void generateGrid(int size, float spacing);
 Sphere createSphere(float radius, unsigned int sectorCount, unsigned int stackCount);
 
 
@@ -185,6 +189,28 @@ int main() {
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
+	//______________________________________________________________________________________________
+
+	generateGrid(20, 1.0f);
+
+	unsigned int gridVAO, gridVBO;
+
+	glGenVertexArrays(1, &gridVAO);
+	glGenBuffers(1, &gridVBO);
+
+	glBindVertexArray(gridVAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
+	glBufferData(GL_ARRAY_BUFFER,
+		gridVertices.size() * sizeof(float),
+		gridVertices.data(),
+		GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindVertexArray(0);
+
 
 	//textures_______________________________________________________________________________________
 
@@ -247,6 +273,10 @@ int main() {
 	ourShader.setInt("texture1", 0);
 	ourShader.setInt("texture2", 1);
 
+	Shader gridShader("grid.vert", "grid.frag");
+
+
+
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -272,11 +302,27 @@ int main() {
 		processInput(window);
 		
 
-		ourShader.use();
-
 		glm::mat4 model = glm::mat4(1.0f);
 		glm::mat4 view = glm::mat4(1.0f);
+		view = camera.GetViewMatrix();
 		glm::mat4 projection;
+
+
+		gridShader.use();
+
+		gridShader.setMat4("view", view);
+		gridShader.setMat4("model", model);
+		gridShader.setMat4("projection", projection);
+
+		gridShader.setVec3("gridColor", glm::vec3(0.6f));
+
+		glBindVertexArray(gridVAO);
+		glDrawArrays(GL_LINES, 0, gridVertices.size() / 3);
+		glBindVertexArray(0);
+
+
+		ourShader.use();
+
 
 		view = camera.GetViewMatrix();
 		model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.70f, 1.0f, 0.0f));
@@ -326,9 +372,12 @@ int main() {
 	glDeleteBuffers(1, &sphereVBO);
 	glDeleteVertexArrays(1, &sphereVAO);
 
+	glDeleteVertexArrays(1, &gridVAO);
+	glDeleteBuffers(1, &gridVBO);
+
 
 	ourShader.~Shader();
-
+	gridShader.~Shader();
 
 	glfwTerminate();
 	return 0;
@@ -337,6 +386,38 @@ int main() {
 
 
 
+
+//generate grid
+
+void generateGrid(int size, float spacing)
+{
+	gridVertices.clear();
+
+	float half = size * spacing * 0.5f;
+
+	for (int i = 0; i <= size; i++)
+	{
+		float pos = -half + i * spacing;
+
+		// Lines parallel to Z (along X)
+		gridVertices.push_back(pos);
+		gridVertices.push_back(0.0f);
+		gridVertices.push_back(-half);
+
+		gridVertices.push_back(pos);
+		gridVertices.push_back(0.0f);
+		gridVertices.push_back(half);
+
+		// Lines parallel to X (along Z)
+		gridVertices.push_back(-half);
+		gridVertices.push_back(0.0f);
+		gridVertices.push_back(pos);
+
+		gridVertices.push_back(half);
+		gridVertices.push_back(0.0f);
+		gridVertices.push_back(pos);
+	}
+}
 
 
 //draw sphere
@@ -415,6 +496,7 @@ Sphere createSphere(float radius, unsigned int sectorCount, unsigned int stackCo
 	return sphere;
 
 }
+
 
 
 
