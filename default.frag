@@ -18,5 +18,5 @@ void main()
 	FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.7);
 	return;
   }
-  FragColor = vec4(0.5f, 0.4f, 0.2f, 1.0f);
+  FragColor = vec4(0.9f, 0.9f, 0.9f, 1.0f);
 }

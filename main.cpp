@@ -44,7 +44,7 @@ const unsigned int SCR_HEIGHT = 600;
 float lastX = SCR_WIDTH/ 2.0f;
 float lastY = SCR_HEIGHT/ 2.0f;
 bool firstMouse = true;
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(2.0f, 3.0f, 3.0f));
 
 
 
@@ -307,7 +307,7 @@ int main() {
 		view = camera.GetViewMatrix();
 		glm::mat4 projection;
 
-
+		//_______________________________draw grid___________________________________________
 		gridShader.use();
 
 		gridShader.setMat4("view", view);
@@ -321,6 +321,7 @@ int main() {
 		glBindVertexArray(0);
 
 
+		//_______________________________draw cube and sphere___________________________________________
 		ourShader.use();
 
 
