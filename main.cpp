@@ -227,7 +227,7 @@ int main() {
 
 	int width, height, nrChannels;
 	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load("assets/textures/brick_texture.jpg", &width, &height, &nrChannels, 0);
+	unsigned char* data = stbi_load("assets/textures/earth-texture.jpg", &width, &height, &nrChannels, 0);
 
 
 	if (data) {
@@ -351,7 +351,7 @@ int main() {
 		ourShader.setMat4("view", view);
 		ourShader.setMat4("projection", projection);
 
-		ourShader.setBool("useTexture", false);
+		ourShader.setBool("useTexture", true);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
@@ -372,6 +372,9 @@ int main() {
 		lightShader.setMat4("projection", projection);
 		lightShader.setMat4("view", view);
 
+
+
+
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, lightPos);
 		model = glm::scale(model, glm::vec3(0.2f)); // smaller sphere
@@ -380,9 +383,9 @@ int main() {
 
 
 		glBindVertexArray(sphereVAO);
-		
 		glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(sphere.indices.size()), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
+
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

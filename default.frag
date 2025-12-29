@@ -22,7 +22,7 @@ uniform bool useTexture;
 void main()
 {
 	// ambient
-  float ambientStrength = 0.1;
+  float ambientStrength = 0.3;
   vec3 ambient = ambientStrength * lightColor;
 
   // diffuse
@@ -32,7 +32,7 @@ void main()
   vec3 diffuse = diff * lightColor;
   
   if(useTexture == true){
-	FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord), 0.7);
+	FragColor = vec4((ambient + diffuse),1.0f) * texture(texture1, TexCoord);
 	return;
   }
 
