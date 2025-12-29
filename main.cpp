@@ -307,7 +307,7 @@ int main() {
 
 		float lightx = 1.0f * sin(glfwGetTime());
 		float lightz = 1.0f * cos(glfwGetTime());
-		lightPos = glm::vec3(lightx, lightz, lightz);
+		lightPos = glm::vec3(lightx, 0.0f, lightz);
 
 		processInput(window);
 		
@@ -342,7 +342,7 @@ int main() {
 		glm::vec3 objectColor(1.0f, 0.0f, 0.0f);
 		ourShader.setVec3("objectColor", objectColor);
 		ourShader.setVec3("lightPos", lightPos);
-
+		ourShader.setVec3("viewPos", camera.Position);
 
 		view = camera.GetViewMatrix();
 		projection = glm::perspective(glm::radians(camera.Zoom), 800.0f / 600.0f, 0.1f, 100.0f);
@@ -351,7 +351,7 @@ int main() {
 		ourShader.setMat4("view", view);
 		ourShader.setMat4("projection", projection);
 
-		ourShader.setBool("useTexture", true);
+		ourShader.setBool("useTexture", false);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
