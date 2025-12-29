@@ -44,7 +44,7 @@ const unsigned int SCR_HEIGHT = 600;
 float lastX = SCR_WIDTH/ 2.0f;
 float lastY = SCR_HEIGHT/ 2.0f;
 bool firstMouse = true;
-Camera camera(glm::vec3(2.0f, 3.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 1.0f, 3.0f));
 
 
 
@@ -55,7 +55,8 @@ float lastFrame = 0.0f;
 
 
 
-
+//grid visibility
+bool gridVisible = true;
 
 
 
@@ -170,7 +171,7 @@ int main() {
 	glGenBuffers(1, &sphereVBO);
 	glGenBuffers(1, &sphereEBO);
 
-	Sphere sphere = createSphere(0.5f, 36, 18);
+	Sphere sphere = createSphere(0.25f, 36, 18);
 
 	glBindVertexArray(sphereVAO);
 
@@ -266,6 +267,8 @@ int main() {
 	//______________________________________________________________________________________________
 
 
+	glm::vec3 lightPos(1.2f, 1.5f, 1.0f);
+
 	//shader
 	Shader ourShader("default.vert", "default.frag");
 
@@ -273,9 +276,15 @@ int main() {
 	ourShader.setInt("texture1", 0);
 	ourShader.setInt("texture2", 1);
 
+
+	//grid shader
+
 	Shader gridShader("grid.vert", "grid.frag");
 
 
+	//light shader
+
+	Shader lightShader("light.vert", "light.frag");	
 
 
 	glEnable(GL_DEPTH_TEST);
@@ -308,32 +317,40 @@ int main() {
 		glm::mat4 projection;
 
 		//_______________________________draw grid___________________________________________
-		gridShader.use();
+		if (gridVisible) {
+			gridShader.use();
 
-		gridShader.setMat4("view", view);
-		gridShader.setMat4("model", model);
-		gridShader.setMat4("projection", projection);
+			gridShader.setMat4("view", view);
+			gridShader.setMat4("model", model);
+			gridShader.setMat4("projection", projection);
 
-		gridShader.setVec3("gridColor", glm::vec3(0.6f));
+			gridShader.setVec3("gridColor", glm::vec3(0.6f));
 
-		glBindVertexArray(gridVAO);
-		glDrawArrays(GL_LINES, 0, gridVertices.size() / 3);
-		glBindVertexArray(0);
 
+			glBindVertexArray(gridVAO);
+			glDrawArrays(GL_LINES, 0, gridVertices.size() / 3);
+			glBindVertexArray(0);
+		}
 
 		//_______________________________draw cube and sphere___________________________________________
+
+		//cube
 		ourShader.use();
+		glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+		ourShader.setVec3("lightColor", lightColor);
+		glm::vec3 objectColor(1.0f, 0.0f, 0.0f);
+		ourShader.setVec3("objectColor", objectColor);
+		ourShader.setVec3("lightPos", lightPos);
 
 
 		view = camera.GetViewMatrix();
-		model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.70f, 1.0f, 0.0f));
 		projection = glm::perspective(glm::radians(camera.Zoom), 800.0f / 600.0f, 0.1f, 100.0f);
 
 		ourShader.setMat4("model", model);
 		ourShader.setMat4("view", view);
 		ourShader.setMat4("projection", projection);
 
-		ourShader.setBool("useTexture", true);
+		ourShader.setBool("useTexture", false);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
@@ -346,17 +363,18 @@ int main() {
 
 		glBindVertexArray(0);
 
-		glm::mat4 sphereModel = glm::mat4(1.0f);
-		sphereModel = glm::rotate(sphereModel, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		sphereModel = glm::rotate(sphereModel, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		sphereModel = glm::translate(sphereModel, glm::vec3(1.5f, 0.0f, 0.0f));
+		//draw light sphere
+		lightShader.use();
+
+		lightShader.setMat4("projection", projection);
+		lightShader.setMat4("view", view);
+
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, lightPos);
+		model = glm::scale(model, glm::vec3(0.2f)); // smaller sphere
+		lightShader.setMat4("model", model);
 
 
-		ourShader.setMat4("model", sphereModel);
-		ourShader.setMat4("view", view);
-		ourShader.setMat4("projection", projection);
-
-		ourShader.setBool("useTexture", false);
 
 		glBindVertexArray(sphereVAO);
 		
@@ -499,19 +517,11 @@ Sphere createSphere(float radius, unsigned int sectorCount, unsigned int stackCo
 }
 
 
-
-
-
-
 //callback function to adjust viewport on window resize
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
 	glViewport(0, 0, width, height);
 }
-
-
-
-
 
 
 
@@ -526,6 +536,10 @@ void processInput(GLFWwindow* window) {
 		camera.ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
+	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
+		gridVisible == false ? gridVisible = true : gridVisible = false;
+
+	
 
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 
