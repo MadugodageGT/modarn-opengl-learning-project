@@ -278,12 +278,10 @@ int main() {
 
 
 	//grid shader
-
 	Shader gridShader("grid.vert", "grid.frag");
 
 
 	//light shader
-
 	Shader lightShader("light.vert", "light.frag");	
 
 
@@ -299,7 +297,7 @@ int main() {
 	//main rendering loop__________________________________________________________________________
 	while (!glfwWindowShouldClose(window)) {
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		
@@ -307,6 +305,9 @@ int main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
+		float lightx = 1.0f * sin(glfwGetTime());
+		float lightz = 1.0f * cos(glfwGetTime());
+		lightPos = glm::vec3(lightx, lightz, lightz);
 
 		processInput(window);
 		
@@ -334,7 +335,7 @@ int main() {
 
 		//_______________________________draw cube and sphere___________________________________________
 
-		//cube
+		// center sphere
 		ourShader.use();
 		glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
 		ourShader.setVec3("lightColor", lightColor);
@@ -358,8 +359,10 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
 
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES,0, 36);
+		glBindVertexArray(sphereVAO);
+
+		glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(sphere.indices.size()), GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
 
 		glBindVertexArray(0);
 
