@@ -171,6 +171,11 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\textures\brick_texture.jpg" />
+    <Image Include="assets\textures\moss_wood_ao_1k.png" />
+    <Image Include="assets\textures\moss_wood_diff_1k.png" />
+    <Image Include="assets\textures\terrain\rocky_terrain_03_ao_1k.png" />
+    <Image Include="assets\textures\terrain\rocky_terrain_03_diff_1k.png" />
+    <Image Include="assets\textures\terrain\rocky_terrain_03_rough_1k.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

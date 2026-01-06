@@ -56,7 +56,7 @@ float lastFrame = 0.0f;
 
 
 //grid visibility
-bool gridVisible = true;
+bool gridVisible = false;
 
 
 
@@ -230,10 +230,10 @@ int main() {
 
 	//textures_______________________________________________________________________________________
 
-	unsigned int texture1;
-	glGenTextures(1, &texture1);
+	unsigned int diffuseTexture;
+	glGenTextures(1, &diffuseTexture);
 
-	glBindTexture(GL_TEXTURE_2D, texture1);
+	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -242,7 +242,7 @@ int main() {
 
 	int width, height, nrChannels;
 	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load("assets/textures/earth-texture.jpg", &width, &height, &nrChannels, 0);
+	unsigned char* data = stbi_load("assets/textures/terrain/rocky_terrain_03_diff_1k.png", &width, &height, &nrChannels, 0);
 
 
 	if (data) {
@@ -256,20 +256,20 @@ int main() {
 	}
 	stbi_image_free(data);
 
-	unsigned int texture2;
-	glGenTextures(1, &texture2);
+	unsigned int specularMap;
+	glGenTextures(1, &specularMap);
 
-	glBindTexture(GL_TEXTURE_2D, texture2);
+	glBindTexture(GL_TEXTURE_2D, specularMap);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	data = stbi_load("assets/textures/pngegg.png", &width, &height, &nrChannels, 0);
+	data = stbi_load("assets/textures/terrain/rocky_terrain_03_rough_1k.png", &width, &height, &nrChannels, 0);
 
 	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
 	}
@@ -279,6 +279,32 @@ int main() {
 	}
 	stbi_image_free(data);
 
+
+	unsigned int aoMap;
+	glGenTextures(2, &aoMap);
+
+	glBindTexture(GL_TEXTURE_2D, aoMap);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	data = stbi_load("assets/textures/terrain/rocky_terrain_03_ao_1k.png", &width, &height, &nrChannels, 0);
+
+	if (data) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+	}
+	else {
+		std::cout << "Failed to load texture" << std::endl;
+
+	}
+	stbi_image_free(data);
+
+
+
 	//______________________________________________________________________________________________
 
 
@@ -286,10 +312,6 @@ int main() {
 
 	//shader
 	Shader ourShader("default.vert", "default.frag");
-
-	ourShader.use();
-	ourShader.setInt("texture1", 0);
-	ourShader.setInt("texture2", 1);
 
 
 	//grid shader
@@ -353,11 +375,11 @@ int main() {
 		glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
 		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
-		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
+		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.3f); // low influence
 
-		ourShader.setVec3("material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
-		ourShader.setVec3("material.diffuse", glm::vec3(1.0f, 0.5f, 0.31f));
-		ourShader.setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+		ourShader.setInt("material.ambient", 2);
+		ourShader.setInt("material.diffuse", 0); //texture unit 0
+		ourShader.setInt("material.specular", 1); //texture unit 1
 		ourShader.setFloat("material.shininess", 32.0f);
 
 		ourShader.setVec3("light.ambient", ambientColor);
@@ -381,9 +403,11 @@ int main() {
 		ourShader.setBool("useTexture", false);
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture1);
+		glBindTexture(GL_TEXTURE_2D, diffuseTexture);
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
+		glBindTexture(GL_TEXTURE_2D, specularMap);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, aoMap);
 
 
 		glBindVertexArray(VAO);
