@@ -369,7 +369,7 @@ int main() {
 
 
 		ourShader.setVec3("lightColor", lightColor);
-		glm::vec3 objectColor(0.1f, 0.3f, 0.5f);
+		glm::vec3 objectColor(0.7f, 0.7f, 0.7f);
 		ourShader.setVec3("objectColor", objectColor);
 		ourShader.setVec3("lightPos", lightPos);
 		ourShader.setVec3("viewPos", camera.Position);
@@ -397,6 +397,8 @@ int main() {
 
 		//draw light sphere
 		lightShader.use();
+
+		lightShader.setVec3("lightColor", lightColor);
 
 		lightShader.setMat4("projection", projection);
 		lightShader.setMat4("view", view);
