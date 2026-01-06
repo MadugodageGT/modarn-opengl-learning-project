@@ -91,6 +91,7 @@ int main() {
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+	/*
 	float vertices[] = {
 		// positions          // normals           // texcoords
 		// back face (-Z)
@@ -142,6 +143,20 @@ int main() {
 		 -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
 	};
 
+	*/
+
+
+
+	float vertices[] = {
+		// positions            // normals         // texcoords
+		-0.5f, 0.0f, -0.5f,     0.0f, 1.0f, 0.0f,   0.0f, 0.0f,
+		 0.5f, 0.0f, -0.5f,     0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
+		 0.5f, 0.0f,  0.5f,     0.0f, 1.0f, 0.0f,   1.0f, 1.0f,
+
+		 0.5f, 0.0f,  0.5f,     0.0f, 1.0f, 0.0f,   1.0f, 1.0f,
+		-0.5f, 0.0f,  0.5f,     0.0f, 1.0f, 0.0f,   0.0f, 1.0f,
+		-0.5f, 0.0f, -0.5f,     0.0f, 1.0f, 0.0f,   0.0f, 0.0f
+	};
 
 	
 	//_______________________________________________________________________________________________
@@ -267,7 +282,7 @@ int main() {
 	//______________________________________________________________________________________________
 
 
-	glm::vec3 lightPos(1.2f, 1.5f, 1.0f);
+	glm::vec3 lightPos(0.3f, 0.3f, -0.5f);
 
 	//shader
 	Shader ourShader("default.vert", "default.frag");
@@ -305,9 +320,6 @@ int main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		float lightx = 1.0f * sin(glfwGetTime());
-		float lightz = 1.0f * cos(glfwGetTime());
-		lightPos = glm::vec3(lightx, 0.0f, lightz);
 
 		processInput(window);
 		
@@ -333,13 +345,23 @@ int main() {
 			glBindVertexArray(0);
 		}
 
-		//_______________________________draw cube and sphere___________________________________________
+		//_______________________________plane and  light spher___________________________________________
 
-		// center sphere
+		// center palne
 		ourShader.use();
+
+		ourShader.setVec3("material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
+		ourShader.setVec3("material.diffuse", glm::vec3(1.0f, 0.5f, 0.31f));
+		ourShader.setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
+		ourShader.setFloat("material.shininess", 32.0f);
+
+		ourShader.setVec3("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
+		ourShader.setVec3("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+		ourShader.setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
+
 		glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
 		ourShader.setVec3("lightColor", lightColor);
-		glm::vec3 objectColor(1.0f, 0.0f, 0.0f);
+		glm::vec3 objectColor(0.1f, 0.3f, 0.5f);
 		ourShader.setVec3("objectColor", objectColor);
 		ourShader.setVec3("lightPos", lightPos);
 		ourShader.setVec3("viewPos", camera.Position);
@@ -359,10 +381,9 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
 
-		glBindVertexArray(sphereVAO);
+		glBindVertexArray(VAO);
 
-		glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(sphere.indices.size()), GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
+		glDrawArrays(GL_TRIANGLES, 0,36);
 
 		glBindVertexArray(0);
 
@@ -371,8 +392,6 @@ int main() {
 
 		lightShader.setMat4("projection", projection);
 		lightShader.setMat4("view", view);
-
-
 
 
 		model = glm::mat4(1.0f);
@@ -534,6 +553,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 //handle inputs
 void processInput(GLFWwindow* window) {
 
+	static bool gKeyWasPressed = false;
+
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		camera.ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -542,8 +563,17 @@ void processInput(GLFWwindow* window) {
 		camera.ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS)
-		gridVisible == false ? gridVisible = true : gridVisible = false;
+
+	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS && !gKeyWasPressed)
+	{
+		gridVisible = !gridVisible;   // toggle once
+		gKeyWasPressed = true;
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_RELEASE)
+	{
+		gKeyWasPressed = false;
+	}
 
 	
 
