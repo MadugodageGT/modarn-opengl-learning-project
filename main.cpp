@@ -350,16 +350,24 @@ int main() {
 		// center palne
 		ourShader.use();
 
+		glm::vec3 lightColor;
+		lightColor.x = sin(glfwGetTime() * 2.0f);
+		lightColor.y = sin(glfwGetTime() * 0.7f);
+		lightColor.z = sin(glfwGetTime() * 1.3f);
+
+		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
+		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
+
 		ourShader.setVec3("material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
 		ourShader.setVec3("material.diffuse", glm::vec3(1.0f, 0.5f, 0.31f));
 		ourShader.setVec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
 		ourShader.setFloat("material.shininess", 32.0f);
 
-		ourShader.setVec3("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-		ourShader.setVec3("light.diffuse", glm::vec3(0.5f, 0.5f, 0.5f));
+		ourShader.setVec3("light.ambient", ambientColor);
+		ourShader.setVec3("light.diffuse", diffuseColor);
 		ourShader.setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 
-		glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+
 		ourShader.setVec3("lightColor", lightColor);
 		glm::vec3 objectColor(0.1f, 0.3f, 0.5f);
 		ourShader.setVec3("objectColor", objectColor);
