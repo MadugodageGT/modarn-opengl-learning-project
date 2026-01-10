@@ -156,7 +156,7 @@ int main() {
 
 	//_____________________________________________________________________________________________
 
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
@@ -167,16 +167,22 @@ int main() {
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		if (!io.WantCaptureMouse)
+		{
+			// Mouse input is not captured by ImGui, handle camera movement here if needed
+			
+		}
+
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-
 		processInput(window);
 		
-
-
 
 		glm::mat4 model = glm::mat4(1.0f);
 		glm::mat4 view = glm::mat4(1.0f);
@@ -216,11 +222,24 @@ int main() {
 
 		ourModel.Draw(ourShader);
 
+		//_____________________________ImGui___________________________________________
+		ImGui::Begin("Info Panel");
+		ImGui::Text("Press G to toggle grid");
+		ImGui::Text("Camera Distance: %.2f", camera.Distance);
+		ImGui::End();
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 
 	}
 	
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+
 
 	glDeleteVertexArrays(1, &gridVAO);
 	glDeleteBuffers(1, &gridVBO);
