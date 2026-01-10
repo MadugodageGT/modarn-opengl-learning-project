@@ -163,6 +163,7 @@
     <ClInclude Include="Libraries\include\stb\stb_image.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="OrbitCamera.h" />
     <ClInclude Include="Shader.h" />
   </ItemGroup>
   <ItemGroup>

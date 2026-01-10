@@ -15,6 +15,7 @@
 
 #include "Shader.h"
 #include "Camera.h"
+#include "OrbitCamera.h"
 #include "Model.h"
 
 
@@ -26,6 +27,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 
 void generateGrid(int size, float spacing);
 
@@ -44,7 +47,8 @@ const unsigned int SCR_HEIGHT = 1080;
 float lastX = SCR_WIDTH/ 2.0f;
 float lastY = SCR_HEIGHT/ 2.0f;
 bool firstMouse = true;
-Camera camera(glm::vec3(2.28f, 2.03f, 3.27f));
+bool isRightMousePressed = false; // check wether right mouse is pressed
+OrbitCamera camera(glm::vec3(0.0f, -0.85f, 0.0f), 5.0f, 45.0f, 30.0f);
 
 
 
@@ -139,6 +143,7 @@ int main() {
 	//_____________________________________________________________________________________________
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 
@@ -186,20 +191,16 @@ int main() {
 		ourShader.use();
 
 		view = camera.GetViewMatrix();
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, -0.85f, 0.0f));
 		model = glm::scale(model, glm::vec3(5.0f));
-		projection = glm::perspective(glm::radians(camera.Zoom), 1920.0f/1080, 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(camera.Distance), 1920.0f/1080, 0.1f, 100.0f);
 
 		ourShader.setMat4("model", model);
 		ourShader.setMat4("view", view);
 		ourShader.setMat4("projection", projection);
 
 		ourModel.Draw(ourShader);
-
-
-		std::cout << "Camera Position: "
-			<< camera.Position.x << ", "
-			<< camera.Position.y << ", "
-			<< camera.Position.z << std::endl;
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -220,10 +221,7 @@ int main() {
 
 
 
-
-
 //generate grid
-
 void generateGrid(int size, float spacing)
 {
 	gridVertices.clear();
@@ -268,14 +266,6 @@ void processInput(GLFWwindow* window) {
 
 	static bool gKeyWasPressed = false;
 
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.ProcessKeyboard(FORWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.ProcessKeyboard(BACKWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.ProcessKeyboard(LEFT, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.ProcessKeyboard(RIGHT, deltaTime);
 
 	if (glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS && !gKeyWasPressed)
 	{
@@ -307,15 +297,30 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	}
 
 	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; // reversed
+	float yoffset = lastY - ypos;
 
 	lastX = xpos;
 	lastY = ypos;
 
-	camera.ProcessMouseMovement(xoffset, yoffset);
+	// Only rotate when right mouse button is held
+	if (isRightMousePressed)
+	{
+		camera.ProcessOrbitRotation(xoffset, yoffset);
+	}
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	if (button == GLFW_MOUSE_BUTTON_RIGHT)
+	{
+		if (action == GLFW_PRESS)
+			isRightMousePressed = true;
+		else if (action == GLFW_RELEASE)
+			isRightMousePressed = false;
+	}
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	camera.ProcessMouseScroll(yoffset);
+	camera.ProcessZoom(yoffset);
 }
