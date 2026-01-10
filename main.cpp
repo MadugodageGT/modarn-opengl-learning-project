@@ -47,8 +47,10 @@ const unsigned int SCR_HEIGHT = 1080;
 float lastX = SCR_WIDTH/ 2.0f;
 float lastY = SCR_HEIGHT/ 2.0f;
 bool firstMouse = true;
+
 bool isRightMousePressed = false; // check wether right mouse is pressed
-OrbitCamera camera(glm::vec3(0.0f, 0.0f, 0.0f), 9.0f, 45.0f, 30.0f);
+bool isMiddleMousePressed = false;
+OrbitCamera camera(glm::vec3(0.0f, 0.0f, 0.0f), 12.0f, 45.0f, 30.0f);
 
 
 
@@ -302,12 +304,18 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	lastX = xpos;
 	lastY = ypos;
 
-	// Only rotate when right mouse button is held
+	// Orbit with right mouse button
 	if (isRightMousePressed)
 	{
 		camera.ProcessOrbitRotation(xoffset, yoffset);
 	}
+	// Pan with middle mouse button
+	else if (isMiddleMousePressed)
+	{
+		camera.ProcessPan(xoffset, yoffset);
+	}
 }
+
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
@@ -317,6 +325,14 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 			isRightMousePressed = true;
 		else if (action == GLFW_RELEASE)
 			isRightMousePressed = false;
+	}
+
+	if (button == GLFW_MOUSE_BUTTON_MIDDLE)
+	{
+		if (action == GLFW_PRESS)
+			isMiddleMousePressed = true;
+		else if (action == GLFW_RELEASE)
+			isMiddleMousePressed = false;
 	}
 }
 

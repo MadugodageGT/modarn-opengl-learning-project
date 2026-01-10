@@ -10,12 +10,12 @@ const float DEFAULT_DISTANCE = 5.0f;
 const float DEFAULT_AZIMUTH = 0.0f;
 const float DEFAULT_ELEVATION = 20.0f;
 const float ORBIT_SENSITIVITY = 0.2f;
+const float PAN_SENSITIVITY = 0.0002f;
 const float ZOOM_SENSITIVITY = 0.5f;
 const float MIN_DISTANCE = 1.0f;
 const float MAX_DISTANCE = 50.0f;
 const float MIN_ELEVATION = -89.0f;
 const float MAX_ELEVATION = 89.0f;
-
 
 class OrbitCamera
 {
@@ -28,6 +28,7 @@ public:
 
     // Camera options
     float OrbitSensitivity;
+    float PanSensitivity;
     float ZoomSensitivity;
 
     // Constructor
@@ -36,7 +37,8 @@ public:
         float azimuth = DEFAULT_AZIMUTH,
         float elevation = DEFAULT_ELEVATION)
         : Target(target), Distance(distance), Azimuth(azimuth), Elevation(elevation),
-        OrbitSensitivity(ORBIT_SENSITIVITY), ZoomSensitivity(ZOOM_SENSITIVITY)
+        OrbitSensitivity(ORBIT_SENSITIVITY), PanSensitivity(PAN_SENSITIVITY),
+        ZoomSensitivity(ZOOM_SENSITIVITY)
     {
     }
 
@@ -82,6 +84,26 @@ public:
             Distance = MIN_DISTANCE;
         if (Distance > MAX_DISTANCE)
             Distance = MAX_DISTANCE;
+    }
+
+    // Process mouse dragging for panning
+    void ProcessPan(float xoffset, float yoffset)
+    {
+        // Get camera vectors
+        glm::vec3 position = CalculatePosition();
+        glm::vec3 viewDir = glm::normalize(Target - position);
+        glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+        // Calculate right and up vectors from camera's perspective
+        glm::vec3 right = glm::normalize(glm::cross(viewDir, worldUp));
+        glm::vec3 up = glm::normalize(glm::cross(right, viewDir));
+
+        // Pan sensitivity scales with distance (farther = faster pan)
+        float panSpeed = PanSensitivity * Distance;
+
+        // Move target based on camera's right and up vectors
+        Target -= right * xoffset * panSpeed;
+        Target -= up * yoffset * panSpeed;
     }
 
     // Set the target point to orbit around
