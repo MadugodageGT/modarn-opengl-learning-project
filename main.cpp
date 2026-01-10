@@ -287,28 +287,6 @@ int main() {
 	stbi_image_free(data);
 
 
-	unsigned int aoMap;
-	glGenTextures(2, &aoMap);
-
-	glBindTexture(GL_TEXTURE_2D, aoMap);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	data = stbi_load("assets/textures/terrain/rocky_terrain_03_ao_1k.png", &width, &height, &nrChannels, 0);
-
-	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-
-	}
-	else {
-		std::cout << "Failed to load texture" << std::endl;
-
-	}
-	stbi_image_free(data);
 
 	// load models______________________________________________________________________________________
 
@@ -381,59 +359,20 @@ int main() {
 
 
 		// center palne
-		//ourShader.use();
 
 		glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
 		ourShader.use();
-		// render the loaded mode
-		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+
+		view = camera.GetViewMatrix();
+		model = glm::scale(model, glm::vec3(0.2f));
+		projection = glm::perspective(glm::radians(camera.Zoom), 800.0f / 600.0f, 0.1f, 100.0f);
+
 		ourShader.setMat4("model", model);
 		ourShader.setMat4("view", view);
+		ourShader.setMat4("projection", projection);
+
 		ourModel.Draw(ourShader);
-
-		//glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
-		//glm::vec3 ambientColor = diffuseColor * glm::vec3(0.3f); // low influence
-
-		//ourShader.setInt("material.ambient", 2);
-		//ourShader.setInt("material.diffuse", 0); //texture unit 0
-		//ourShader.setInt("material.specular", 1); //texture unit 1
-		//ourShader.setFloat("material.shininess", 32.0f);
-
-		//ourShader.setVec3("light.ambient", ambientColor);
-		//ourShader.setVec3("light.diffuse", diffuseColor);
-		//ourShader.setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
-
-
-		//ourShader.setVec3("lightColor", lightColor);
-		//glm::vec3 objectColor(0.7f, 0.7f, 0.7f);
-		//ourShader.setVec3("objectColor", objectColor);
-		//ourShader.setVec3("lightPos", lightPos);
-		//ourShader.setVec3("viewPos", camera.Position);
-
-		//view = camera.GetViewMatrix();
-		//projection = glm::perspective(glm::radians(camera.Zoom), 800.0f / 600.0f, 0.1f, 100.0f);
-
-		//ourShader.setMat4("model", model);
-		//ourShader.setMat4("view", view);
-		//ourShader.setMat4("projection", projection);
-
-		//ourShader.setBool("useTexture", false);
-
-		//glActiveTexture(GL_TEXTURE0);
-		//glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-		//glActiveTexture(GL_TEXTURE1);
-		//glBindTexture(GL_TEXTURE_2D, specularMap);
-		//glActiveTexture(GL_TEXTURE2);
-		//glBindTexture(GL_TEXTURE_2D, aoMap);
-
-
-		//glBindVertexArray(VAO);
-
-		//glDrawArrays(GL_TRIANGLES, 0,36);
-
-		//glBindVertexArray(0);
 
 		//draw light sphere
 		lightShader.use();
@@ -521,7 +460,7 @@ Sphere createSphere(float radius, unsigned int sectorCount, unsigned int stackCo
 	float x, y, z, xy;                              // vertex position
 	float nx, ny, nz, lengthInv = 1.0f / radius;    // vertex normal
 	float s, t;                                     // vertex texCoord
-
+	
 	float sectorStep = 2 * glm::pi<float>() / sectorCount;
 	float stackStep = glm::pi<float>() / stackCount;
 	float sectorAngle, stackAngle;

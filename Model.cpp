@@ -67,6 +67,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
 		}
 		else
 			vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+		vertices.push_back(vertex);
 	}
 
 	for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
@@ -88,6 +89,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
 		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
 	}
+
 
 	return Mesh(vertices, indices, textures);
 

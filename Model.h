@@ -30,6 +30,7 @@ public:
 	Model(const char* path)
 	{
 		loadModel(path);
+		std::cout << "Loaded meshes: " << meshes.size() << std::endl;
 	};
 	void Draw(Shader& shader);
 
