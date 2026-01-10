@@ -1,3 +1,7 @@
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -127,20 +131,28 @@ int main() {
 
 	Model ourModel("assets/models/sample_model_obj/24_12_2024.obj");
 
-	//______________________________________________________________________________________________
-
+	//shaders______________________________________________________________________________________________
 
 	//shader
 	Shader ourShader("model.vert", "model.frag");
-
 
 	//grid shader
 	Shader gridShader("grid.vert", "grid.frag");
 
 
 
-	glEnable(GL_DEPTH_TEST);
+	//ImGui setup______________________________________________________________________________________
 
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330");
+
+
+	//enable depth test______________________________________________________________________________________
+	glEnable(GL_DEPTH_TEST);
 
 	//_____________________________________________________________________________________________
 
