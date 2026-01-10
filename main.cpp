@@ -221,7 +221,7 @@ int main() {
 	return 0;
 }
 
-
+//__________________________________________________________________________________________________________________
 
 //generate grid
 void generateGrid(int size, float spacing)
@@ -253,7 +253,6 @@ void generateGrid(int size, float spacing)
 		gridVertices.push_back(pos);
 	}
 }
-
 
 //callback function to adjust viewport on window resize
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -316,7 +315,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	}
 }
 
-
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
 	if (button == GLFW_MOUSE_BUTTON_RIGHT)
@@ -335,7 +333,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 			isMiddleMousePressed = false;
 	}
 }
-
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	camera.ProcessZoom(yoffset);
