@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <iostream>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -14,6 +15,8 @@
 
 #include "Shader.h"
 #include "Camera.h"
+#include "Model.h"
+
 
 
 
@@ -307,7 +310,9 @@ int main() {
 	}
 	stbi_image_free(data);
 
+	// load models______________________________________________________________________________________
 
+	Model ourModel("assets/models/backpack/backpack.obj");
 
 	//______________________________________________________________________________________________
 
@@ -315,7 +320,7 @@ int main() {
 	glm::vec3 lightPos(0.3f, 0.3f, -0.5f);
 
 	//shader
-	Shader ourShader("default.vert", "default.frag");
+	Shader ourShader("model.vert", "model.frag");
 
 
 	//grid shader
@@ -373,52 +378,62 @@ int main() {
 
 		//_______________________________plane and  light spher___________________________________________
 
+
+
 		// center palne
-		ourShader.use();
+		//ourShader.use();
 
 		glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
-		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
-		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.3f); // low influence
-
-		ourShader.setInt("material.ambient", 2);
-		ourShader.setInt("material.diffuse", 0); //texture unit 0
-		ourShader.setInt("material.specular", 1); //texture unit 1
-		ourShader.setFloat("material.shininess", 32.0f);
-
-		ourShader.setVec3("light.ambient", ambientColor);
-		ourShader.setVec3("light.diffuse", diffuseColor);
-		ourShader.setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
-
-
-		ourShader.setVec3("lightColor", lightColor);
-		glm::vec3 objectColor(0.7f, 0.7f, 0.7f);
-		ourShader.setVec3("objectColor", objectColor);
-		ourShader.setVec3("lightPos", lightPos);
-		ourShader.setVec3("viewPos", camera.Position);
-
-		view = camera.GetViewMatrix();
-		projection = glm::perspective(glm::radians(camera.Zoom), 800.0f / 600.0f, 0.1f, 100.0f);
-
+		ourShader.use();
+		// render the loaded mode
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
 		ourShader.setMat4("model", model);
 		ourShader.setMat4("view", view);
-		ourShader.setMat4("projection", projection);
+		ourModel.Draw(ourShader);
 
-		ourShader.setBool("useTexture", false);
+		//glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // decrease the influence
+		//glm::vec3 ambientColor = diffuseColor * glm::vec3(0.3f); // low influence
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, diffuseTexture);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, specularMap);
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, aoMap);
+		//ourShader.setInt("material.ambient", 2);
+		//ourShader.setInt("material.diffuse", 0); //texture unit 0
+		//ourShader.setInt("material.specular", 1); //texture unit 1
+		//ourShader.setFloat("material.shininess", 32.0f);
+
+		//ourShader.setVec3("light.ambient", ambientColor);
+		//ourShader.setVec3("light.diffuse", diffuseColor);
+		//ourShader.setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
 
 
-		glBindVertexArray(VAO);
+		//ourShader.setVec3("lightColor", lightColor);
+		//glm::vec3 objectColor(0.7f, 0.7f, 0.7f);
+		//ourShader.setVec3("objectColor", objectColor);
+		//ourShader.setVec3("lightPos", lightPos);
+		//ourShader.setVec3("viewPos", camera.Position);
 
-		glDrawArrays(GL_TRIANGLES, 0,36);
+		//view = camera.GetViewMatrix();
+		//projection = glm::perspective(glm::radians(camera.Zoom), 800.0f / 600.0f, 0.1f, 100.0f);
 
-		glBindVertexArray(0);
+		//ourShader.setMat4("model", model);
+		//ourShader.setMat4("view", view);
+		//ourShader.setMat4("projection", projection);
+
+		//ourShader.setBool("useTexture", false);
+
+		//glActiveTexture(GL_TEXTURE0);
+		//glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+		//glActiveTexture(GL_TEXTURE1);
+		//glBindTexture(GL_TEXTURE_2D, specularMap);
+		//glActiveTexture(GL_TEXTURE2);
+		//glBindTexture(GL_TEXTURE_2D, aoMap);
+
+
+		//glBindVertexArray(VAO);
+
+		//glDrawArrays(GL_TRIANGLES, 0,36);
+
+		//glBindVertexArray(0);
 
 		//draw light sphere
 		lightShader.use();

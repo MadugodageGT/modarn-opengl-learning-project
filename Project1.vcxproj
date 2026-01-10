@@ -172,6 +172,8 @@
     <None Include="grid.vert" />
     <None Include="light.frag" />
     <None Include="light.vert" />
+    <None Include="model.frag" />
+    <None Include="model.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\textures\brick_texture.jpg" />

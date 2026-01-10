@@ -14,6 +14,9 @@ Mesh::Mesh( std::vector<Vertex> vertices, std::vector<unsigned int> indices, std
 }
 
 void Mesh::setupMesh() {
+
+	if (vertices.empty()) return;
+
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);

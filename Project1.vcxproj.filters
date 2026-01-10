@@ -16,6 +16,9 @@
     <Filter Include="Resource Files\textures">
       <UniqueIdentifier>{b93b8e68-f1de-4958-86c3-75584ab4da4b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\shaders">
+      <UniqueIdentifier>{7cd7c868-cb6a-474a-bf8b-4d47cf24f226}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="glad.c">
@@ -55,23 +58,29 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="default.vert">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="default.frag">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\shaders</Filter>
     </None>
-    <None Include="grid.vert">
-      <Filter>Resource Files</Filter>
+    <None Include="default.vert">
+      <Filter>Resource Files\shaders</Filter>
     </None>
     <None Include="grid.frag">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="grid.vert">
+      <Filter>Resource Files\shaders</Filter>
     </None>
     <None Include="light.frag">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\shaders</Filter>
     </None>
     <None Include="light.vert">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="model.vert">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="model.frag">
+      <Filter>Resource Files\shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

@@ -27,11 +27,11 @@ public:
 	std::vector<Texture> textures_loaded;
 	std::vector<Mesh> meshes;
 	std::string directory;
-	Model(char* path)
+	Model(const char* path)
 	{
 		loadModel(path);
 	};
-	void darw(Shader& shader);
+	void Draw(Shader& shader);
 
 private:
 
