@@ -19,13 +19,6 @@
 
 
 
-
-//structure to save vertices and indices of a Sphere
-struct Sphere {
-	std::vector<float> vertices;
-	std::vector<unsigned int> indices;
-};
-
 //vector to save grid vertices
 std::vector<float> gridVertices;
 
@@ -35,7 +28,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 void generateGrid(int size, float spacing);
-Sphere createSphere(float radius, unsigned int sectorCount, unsigned int stackCount);
+
 
 
 
@@ -51,7 +44,7 @@ const unsigned int SCR_HEIGHT = 1080;
 float lastX = SCR_WIDTH/ 2.0f;
 float lastY = SCR_HEIGHT/ 2.0f;
 bool firstMouse = true;
-Camera camera(glm::vec3(0.0f, 1.0f, 3.0f));
+Camera camera(glm::vec3(2.28f, 2.03f, 3.27f));
 
 
 
@@ -131,8 +124,6 @@ int main() {
 	//______________________________________________________________________________________________
 
 
-	glm::vec3 lightPos(0.3f, 0.3f, -0.5f);
-
 	//shader
 	Shader ourShader("model.vert", "model.frag");
 
@@ -140,9 +131,6 @@ int main() {
 	//grid shader
 	Shader gridShader("grid.vert", "grid.frag");
 
-
-	//light shader
-	Shader lightShader("light.vert", "light.frag");	
 
 
 	glEnable(GL_DEPTH_TEST);
@@ -169,6 +157,8 @@ int main() {
 		processInput(window);
 		
 
+
+
 		glm::mat4 model = glm::mat4(1.0f);
 		glm::mat4 view = glm::mat4(1.0f);
 		view = camera.GetViewMatrix();
@@ -190,19 +180,14 @@ int main() {
 			glBindVertexArray(0);
 		}
 
-		//_______________________________plane and  light spher___________________________________________
 
-
-
-		// Loaded model
-
-		glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+		// _________________________Loaded model__________________________________________
 
 		ourShader.use();
 
 		view = camera.GetViewMatrix();
 		model = glm::scale(model, glm::vec3(5.0f));
-		projection = glm::perspective(glm::radians(camera.Zoom), 800.0f / 600.0f, 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(camera.Zoom), 1920.0f/1080, 0.1f, 100.0f);
 
 		ourShader.setMat4("model", model);
 		ourShader.setMat4("view", view);
@@ -210,8 +195,15 @@ int main() {
 
 		ourModel.Draw(ourShader);
 
+
+		std::cout << "Camera Position: "
+			<< camera.Position.x << ", "
+			<< camera.Position.y << ", "
+			<< camera.Position.z << std::endl;
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
+
 	}
 	
 
@@ -260,84 +252,6 @@ void generateGrid(int size, float spacing)
 		gridVertices.push_back(0.0f);
 		gridVertices.push_back(pos);
 	}
-}
-
-
-//draw sphere
-Sphere createSphere(float radius, unsigned int sectorCount, unsigned int stackCount) {
-
-	Sphere sphere;
-	float x, y, z, xy;                              // vertex position
-	float nx, ny, nz, lengthInv = 1.0f / radius;    // vertex normal
-	float s, t;                                     // vertex texCoord
-	
-	float sectorStep = 2 * glm::pi<float>() / sectorCount;
-	float stackStep = glm::pi<float>() / stackCount;
-	float sectorAngle, stackAngle;
-
-	for (unsigned int i = 0; i <= stackCount; ++i)
-	{
-		stackAngle = glm::pi<float>() / 2 - i * stackStep;        // starting from pi/2 to -pi/2
-		xy = radius * cosf(stackAngle);             // r * cos(u)
-		z = radius * sinf(stackAngle);              // r * sin(u)
-
-		// add (sectorCount+1) vertices per stack
-		// the first and last vertices have same position and normal, but different tex coords
-		for (unsigned int j = 0; j <= sectorCount; ++j)
-		{
-			sectorAngle = j * sectorStep;           // starting from 0 to 2pi
-
-			// vertex position (x, y, z)
-			x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
-			y = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
-			sphere.vertices.push_back(x);
-			sphere.vertices.push_back(y);
-			sphere.vertices.push_back(z);
-
-			// normalized vertex normal (nx, ny, nz)
-			nx = x * lengthInv;
-			ny = y * lengthInv;
-			nz = z * lengthInv;
-			sphere.vertices.push_back(nx);
-			sphere.vertices.push_back(ny);
-			sphere.vertices.push_back(nz);
-
-			// vertex tex coord (s, t) range between [0, 1]
-			s = (float)j / sectorCount;
-			t = (float)i / stackCount;
-			sphere.vertices.push_back(s);
-			sphere.vertices.push_back(t);
-		}
-	}
-
-	// indices
-	unsigned int k1, k2;
-	for (unsigned int i = 0; i < stackCount; ++i)
-	{
-		k1 = i * (sectorCount + 1);
-		k2 = k1 + sectorCount + 1;
-
-		for (unsigned int j = 0; j < sectorCount; ++j, ++k1, ++k2)
-		{
-			// 2 triangles per sector excluding first and last stacks
-			if (i != 0)
-			{
-				sphere.indices.push_back(k1);
-				sphere.indices.push_back(k2);
-				sphere.indices.push_back(k1 + 1);
-			}
-
-			if (i != (stackCount - 1))
-			{
-				sphere.indices.push_back(k1 + 1);
-				sphere.indices.push_back(k2);
-				sphere.indices.push_back(k2 + 1);
-			}
-		}
-	}
-
-	return sphere;
-
 }
 
 
