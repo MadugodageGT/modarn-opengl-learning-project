@@ -60,7 +60,7 @@ public:
         yoffset *= OrbitSensitivity;
 
         Azimuth += xoffset;
-        Elevation += yoffset;
+        Elevation -= yoffset;
 
         // Constrain elevation to prevent gimbal lock
         if (Elevation > MAX_ELEVATION)

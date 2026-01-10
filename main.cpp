@@ -48,7 +48,7 @@ float lastX = SCR_WIDTH/ 2.0f;
 float lastY = SCR_HEIGHT/ 2.0f;
 bool firstMouse = true;
 bool isRightMousePressed = false; // check wether right mouse is pressed
-OrbitCamera camera(glm::vec3(0.0f, -0.85f, 0.0f), 5.0f, 45.0f, 30.0f);
+OrbitCamera camera(glm::vec3(0.0f, 0.0f, 0.0f), 9.0f, 45.0f, 30.0f);
 
 
 
