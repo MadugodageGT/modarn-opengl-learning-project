@@ -237,60 +237,61 @@ int main() {
 
 	//textures_______________________________________________________________________________________
 
-	unsigned int diffuseTexture;
-	glGenTextures(1, &diffuseTexture);
+	//unsigned int diffuseTexture;
+	//glGenTextures(1, &diffuseTexture);
 
-	glBindTexture(GL_TEXTURE_2D, diffuseTexture);
+	//glBindTexture(GL_TEXTURE_2D, diffuseTexture);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	int width, height, nrChannels;
-	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load("assets/textures/terrain/rocky_terrain_03_diff_1k.png", &width, &height, &nrChannels, 0);
+	//int width, height, nrChannels;
+	//stbi_set_flip_vertically_on_load(true);
+	//unsigned char* data = stbi_load("assets/textures/terrain/rocky_terrain_03_diff_1k.png", &width, &height, &nrChannels, 0);
 
 
-	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
+	//if (data) {
+	//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	//	glGenerateMipmap(GL_TEXTURE_2D);
 
-	}
-	else {
-		std::cout << "Failed to load texture" << std::endl;
+	//}
+	//else {
+	//	std::cout << "Failed to load texture" << std::endl;
 
-	}
-	stbi_image_free(data);
+	//}
+	//stbi_image_free(data);
 
-	unsigned int specularMap;
-	glGenTextures(1, &specularMap);
+	//unsigned int specularMap;
+	//glGenTextures(1, &specularMap);
 
-	glBindTexture(GL_TEXTURE_2D, specularMap);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	//glBindTexture(GL_TEXTURE_2D, specularMap);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	data = stbi_load("assets/textures/terrain/rocky_terrain_03_rough_1k.png", &width, &height, &nrChannels, 0);
+	//data = stbi_load("assets/textures/terrain/rocky_terrain_03_rough_1k.png", &width, &height, &nrChannels, 0);
 
-	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
+	//if (data) {
+	//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+	//	glGenerateMipmap(GL_TEXTURE_2D);
 
-	}
-	else {
-		std::cout << "Failed to load texture" << std::endl;
+	//}
+	//else {
+	//	std::cout << "Failed to load texture" << std::endl;
 
-	}
-	stbi_image_free(data);
+	//}
+	//stbi_image_free(data);
 
 
 
 	// load models______________________________________________________________________________________
 
-	Model ourModel("assets/models/backpack/backpack.obj");
+	//Model ourModel("assets/models/backpack/backpack.obj");
+	Model ourModel("assets/models/24_12_2024 OBG/24_12_2024.obj");
 
 	//______________________________________________________________________________________________
 
@@ -365,7 +366,7 @@ int main() {
 		ourShader.use();
 
 		view = camera.GetViewMatrix();
-		model = glm::scale(model, glm::vec3(0.2f));
+		model = glm::scale(model, glm::vec3(5.0f));
 		projection = glm::perspective(glm::radians(camera.Zoom), 800.0f / 600.0f, 0.1f, 100.0f);
 
 		ourShader.setMat4("model", model);
@@ -373,27 +374,6 @@ int main() {
 		ourShader.setMat4("projection", projection);
 
 		ourModel.Draw(ourShader);
-
-		////draw light sphere
-		//lightShader.use();
-
-		//lightShader.setVec3("lightColor", lightColor);
-
-		//lightShader.setMat4("projection", projection);
-		//lightShader.setMat4("view", view);
-
-
-		//model = glm::mat4(1.0f);
-		//model = glm::translate(model, lightPos);
-		//model = glm::scale(model, glm::vec3(0.2f)); // smaller sphere
-		//lightShader.setMat4("model", model);
-
-
-
-		//glBindVertexArray(sphereVAO);
-		//glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(sphere.indices.size()), GL_UNSIGNED_INT, 0);
-		//glBindVertexArray(0);
-
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
