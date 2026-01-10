@@ -1,8 +1,13 @@
 #ifndef CLASS_MESH_H
 #define CLASS_MESH_H
 
+#include <glad/glad.h> // holds all OpenGL type declarations
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include "Shader.h"
+
 #include <string>
 #include <vector>
 
@@ -25,9 +30,7 @@ public:
 	std::vector<unsigned int> indices;
 	std::vector<Texture> textures;
 
-	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures)
-		: vertices(vertices), indices(indices), textures(textures) {};
-
+	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
 	void Draw(Shader &shader);
 
 private:

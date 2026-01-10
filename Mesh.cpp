@@ -3,8 +3,13 @@
 
 
 
-Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures)
-	: vertices(vertices), indices(indices), textures(textures) {
+Mesh::Mesh( std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures)
+{
+	this->vertices = vertices;
+	this->indices = indices;
+	this->textures = textures;
+
+	// now that we have all the required data, set the vertex buffers and its attribute pointers.
 	setupMesh();
 }
 
@@ -57,5 +62,6 @@ void Mesh::Draw(Shader &shader) {
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
+	glActiveTexture(GL_TEXTURE0);
 
 }
