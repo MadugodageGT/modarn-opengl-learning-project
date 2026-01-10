@@ -358,7 +358,7 @@ int main() {
 
 
 
-		// center palne
+		// Loaded model
 
 		glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
@@ -374,25 +374,25 @@ int main() {
 
 		ourModel.Draw(ourShader);
 
-		//draw light sphere
-		lightShader.use();
+		////draw light sphere
+		//lightShader.use();
 
-		lightShader.setVec3("lightColor", lightColor);
+		//lightShader.setVec3("lightColor", lightColor);
 
-		lightShader.setMat4("projection", projection);
-		lightShader.setMat4("view", view);
-
-
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, lightPos);
-		model = glm::scale(model, glm::vec3(0.2f)); // smaller sphere
-		lightShader.setMat4("model", model);
+		//lightShader.setMat4("projection", projection);
+		//lightShader.setMat4("view", view);
 
 
+		//model = glm::mat4(1.0f);
+		//model = glm::translate(model, lightPos);
+		//model = glm::scale(model, glm::vec3(0.2f)); // smaller sphere
+		//lightShader.setMat4("model", model);
 
-		glBindVertexArray(sphereVAO);
-		glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(sphere.indices.size()), GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
+
+
+		//glBindVertexArray(sphereVAO);
+		//glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(sphere.indices.size()), GL_UNSIGNED_INT, 0);
+		//glBindVertexArray(0);
 
 
 		glfwSwapBuffers(window);
