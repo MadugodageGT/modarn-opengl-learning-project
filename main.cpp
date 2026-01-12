@@ -126,9 +126,14 @@ int main() {
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
 
+
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+
+		//ray picking variables
+		double mouseX, mouseY;
+		glfwGetCursorPos(window, &mouseX, &mouseY);
 
 
 
@@ -193,6 +198,27 @@ int main() {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
 
+
+
+        float NDC_X = (2.0f * mouseX) / viewportWidth - 1.0f;
+        float NDC_Y = 1.0f - (2.0f * mouseY) / viewportHeight;
+
+        float near_plane_height = 2.0f * tan(glm::radians(45.0f) / 2.0f) * 0.1f;
+        float aspect_ratio = (float)viewportWidth / (float)viewportHeight;
+
+        float X_3D = NDC_X * (near_plane_height * aspect_ratio) / 2.0f;
+        float Y_3D = NDC_Y * (near_plane_height) / 2.0f;
+
+        glm::vec3 ray_nds = glm::vec3(X_3D, Y_3D, -1.0f);
+        ray_nds = glm::inverse(view) * glm::vec4(ray_nds, 1.0f);
+		glm::vec3 ray_direction = ray_nds - camera.GetPosition();
+
+
+		std::cout << "Ray Direction: (" << ray_direction.x << ", " << ray_direction.y << ", " << ray_direction.z << ")\n";
+
+
+
+        //Render UI
 		processUI(windowWidth, windowHeight);
 
         glfwSwapBuffers(window);

@@ -112,6 +112,7 @@ public:
         Target = newTarget;
     }
 
+
 private:
     // Calculate camera position from spherical coordinates
     glm::vec3 CalculatePosition()
