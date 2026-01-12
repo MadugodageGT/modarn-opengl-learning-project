@@ -46,6 +46,7 @@ OrbitCamera camera(glm::vec3(0.0f, 0.0f, 0.0f), 12.0f, 45.0f, 30.0f);
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+
 // Grid visibility
 bool gridVisible = true;
 
@@ -75,6 +76,7 @@ int main() {
     }
 
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
@@ -117,11 +119,16 @@ int main() {
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
 
+
     // Main rendering loop
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
+
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+
+
 
         processInput(window);
 
@@ -271,6 +278,8 @@ int main() {
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    
 
         glfwSwapBuffers(window);
         glfwPollEvents();
