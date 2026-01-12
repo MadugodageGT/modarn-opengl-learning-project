@@ -29,6 +29,8 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void generateGrid(int size, float spacing);
 
+void processUI(int& windowWidth, int& windowHeight);
+
 // Settings
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
@@ -191,95 +193,7 @@ int main() {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
 
-        glDisable(GL_SCISSOR_TEST);
-
-        // Reset viewport for UI rendering
-        glViewport(0, 0, windowWidth, windowHeight);
-
-        // Right side panel (properties)
-        ImGui::SetNextWindowPos(ImVec2(viewportWidth, 0));
-        ImGui::SetNextWindowSize(ImVec2(PANEL_WIDTH, windowHeight));
-        ImGui::Begin("Properties", nullptr,
-            ImGuiWindowFlags_NoMove |
-            ImGuiWindowFlags_NoResize |
-            ImGuiWindowFlags_NoCollapse |
-            ImGuiWindowFlags_NoTitleBar);
-
-        ImGui::Text("PROPERTIES");
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        // Scene Settings
-        if (ImGui::CollapsingHeader("Scene", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::ColorEdit3("Background", bgColor);
-            ImGui::Spacing();
-        }
-
-        // Grid Settings
-        if (ImGui::CollapsingHeader("Grid", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::Checkbox("Show Grid", &gridVisible);
-            if (gridVisible) {
-                ImGui::ColorEdit3("Grid Color", gridColor);
-            }
-            ImGui::Spacing();
-        }
-
-        // Model Transform
-        if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::SliderFloat("Scale", &modelScale, 0.1f, 20.0f);
-            ImGui::SliderFloat("Height", &modelPosY, -5.0f, 5.0f);
-            if (ImGui::Button("Reset Transform")) {
-                modelScale = 5.0f;
-                modelPosY = -0.85f;
-            }
-            ImGui::Spacing();
-        }
-
-        // Display Settings
-        if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::Checkbox("Wireframe", &showWireframe);
-            ImGui::Spacing();
-        }
-
-        // Camera Info
-        if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::Text("Distance: %.2f", camera.Distance);
-            ImGui::Text("Pitch: %.2f", camera.Distance); //to be change
-            ImGui::Text("Yaw: %.2f", camera.Distance);
-            if (ImGui::Button("Reset Camera")) {
-                camera = OrbitCamera(glm::vec3(0.0f, 0.0f, 0.0f), 12.0f, 45.0f, 30.0f);
-            }
-            ImGui::Spacing();
-        }
-
-        // Controls Info
-        if (ImGui::CollapsingHeader("Controls", ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::TextWrapped("Right Mouse: Orbit camera");
-            ImGui::TextWrapped("Middle Mouse: Pan camera");
-            ImGui::TextWrapped("Scroll: Zoom in/out");
-            ImGui::TextWrapped("G: Toggle grid");
-            ImGui::TextWrapped("ESC: Exit");
-        }
-
-        ImGui::End();
-
-        // Viewport info overlay (top-left corner of 3D viewport)
-        ImGui::SetNextWindowPos(ImVec2(10, 10));
-        ImGui::SetNextWindowBgAlpha(0.35f);
-        ImGui::Begin("Viewport Info", nullptr,
-            ImGuiWindowFlags_NoDecoration |
-            ImGuiWindowFlags_AlwaysAutoResize |
-            ImGuiWindowFlags_NoSavedSettings |
-            ImGuiWindowFlags_NoFocusOnAppearing |
-            ImGuiWindowFlags_NoNav);
-        ImGui::Text("Frame: %d", (int)glfwGetTime());
-        ImGui::Text("FPS: %.1f", 1.0f / deltaTime);
-        ImGui::End();
-
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-    
+		processUI(windowWidth, windowHeight);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -413,4 +327,96 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
         return;
 
     camera.ProcessZoom(yoffset);
+}
+
+void processUI(int &windowWidth, int &windowHeight) {
+
+    glDisable(GL_SCISSOR_TEST);
+
+    // Reset viewport for UI rendering
+    glViewport(0, 0, windowWidth, windowHeight);
+
+    // Right side panel (properties)
+    ImGui::SetNextWindowPos(ImVec2(viewportWidth, 0));
+    ImGui::SetNextWindowSize(ImVec2(PANEL_WIDTH, windowHeight));
+    ImGui::Begin("Properties", nullptr,
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoCollapse |
+        ImGuiWindowFlags_NoTitleBar);
+
+    ImGui::Text("PROPERTIES");
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // Scene Settings
+    if (ImGui::CollapsingHeader("Scene", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::ColorEdit3("Background", bgColor);
+        ImGui::Spacing();
+    }
+
+    // Grid Settings
+    if (ImGui::CollapsingHeader("Grid", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::Checkbox("Show Grid", &gridVisible);
+        if (gridVisible) {
+            ImGui::ColorEdit3("Grid Color", gridColor);
+        }
+        ImGui::Spacing();
+    }
+
+    // Model Transform
+    if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::SliderFloat("Scale", &modelScale, 0.1f, 20.0f);
+        ImGui::SliderFloat("Height", &modelPosY, -5.0f, 5.0f);
+        if (ImGui::Button("Reset Transform")) {
+            modelScale = 5.0f;
+            modelPosY = -0.85f;
+        }
+        ImGui::Spacing();
+    }
+
+    // Display Settings
+    if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::Checkbox("Wireframe", &showWireframe);
+        ImGui::Spacing();
+    }
+
+    // Camera Info
+    if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::Text("Distance: %.2f", camera.Distance);
+        ImGui::Text("Pitch: %.2f", camera.Distance); //to be change
+        ImGui::Text("Yaw: %.2f", camera.Distance);
+        if (ImGui::Button("Reset Camera")) {
+            camera = OrbitCamera(glm::vec3(0.0f, 0.0f, 0.0f), 12.0f, 45.0f, 30.0f);
+        }
+        ImGui::Spacing();
+    }
+
+    // Controls Info
+    if (ImGui::CollapsingHeader("Controls", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::TextWrapped("Right Mouse: Orbit camera");
+        ImGui::TextWrapped("Middle Mouse: Pan camera");
+        ImGui::TextWrapped("Scroll: Zoom in/out");
+        ImGui::TextWrapped("G: Toggle grid");
+        ImGui::TextWrapped("ESC: Exit");
+    }
+
+    ImGui::End();
+
+    // Viewport info overlay (top-left corner of 3D viewport)
+    ImGui::SetNextWindowPos(ImVec2(10, 10));
+    ImGui::SetNextWindowBgAlpha(0.35f);
+    ImGui::Begin("Viewport Info", nullptr,
+        ImGuiWindowFlags_NoDecoration |
+        ImGuiWindowFlags_AlwaysAutoResize |
+        ImGuiWindowFlags_NoSavedSettings |
+        ImGuiWindowFlags_NoFocusOnAppearing |
+        ImGuiWindowFlags_NoNav);
+    ImGui::Text("Frame: %d", (int)glfwGetTime());
+    ImGui::Text("FPS: %.1f", 1.0f / deltaTime);
+    ImGui::End();
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 }
