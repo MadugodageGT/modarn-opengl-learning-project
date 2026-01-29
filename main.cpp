@@ -121,7 +121,6 @@ int main() {
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
 
-
     // Main rendering loop
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = glfwGetTime();
