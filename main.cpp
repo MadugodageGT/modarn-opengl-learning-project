@@ -1,4 +1,4 @@
-#include "imgui.h"
+﻿#include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
@@ -29,8 +29,22 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void generateGrid(int size, float spacing);
 
-
 void processUI(int& windowWidth, int& windowHeight);
+
+bool intersectRayTriangle(
+    const glm::vec3& orig,
+    const glm::vec3& dir,
+    const glm::vec3& v0,
+    const glm::vec3& v1,
+    const glm::vec3& v2,
+    float& t);
+
+bool PickModel(
+    const Model& model,
+    const glm::mat4& modelMatrix,
+    const glm::vec3& ray_origin,
+    const glm::vec3& ray_dir,
+    glm::vec3& outHitPoint);
 
 // Settings
 const unsigned int SCR_WIDTH = 1920;
@@ -43,6 +57,8 @@ float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 bool isRightMousePressed = false;
 bool isMiddleMousePressed = false;
+bool isLeftMousePressed = false;
+
 OrbitCamera camera(glm::vec3(0.0f, 0.0f, 0.0f), 12.0f, 45.0f, 30.0f);
 
 // Delta time variables
@@ -217,12 +233,21 @@ int main() {
 
 		ray_wor = glm::normalize(ray_wor);
 
-		std::cout << "Ray Direction: (" << ray_wor.x << ", " << ray_wor.y << ", " << ray_wor.z << ")\n";
+		//std::cout << "Ray Direction: (" << ray_wor.x << ", " << ray_wor.y << ", " << ray_wor.z << ")\n";
 
 		glm::vec3 ray_origin = camera.GetPosition();
 
         
-        
+        if (isLeftMousePressed)
+        {
+            glm::vec3 hitPoint;
+            if (PickModel(ourModel, model, ray_origin, ray_wor, hitPoint))
+            {
+                //annotations.push_back(hitPoint);
+				std::cout << "Hit Point: (" << hitPoint.x << ", " << hitPoint.y << ", " << hitPoint.z << ")\n";
+            }
+        }
+
 
         ///
 
@@ -316,6 +341,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     else if (isMiddleMousePressed) {
         camera.ProcessPan(xoffset, yoffset);
     }
+
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
@@ -344,6 +370,13 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
             isMiddleMousePressed = true;
         else if (action == GLFW_RELEASE)
             isMiddleMousePressed = false;
+    }
+
+    if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        if (action == GLFW_PRESS)
+            isLeftMousePressed = true;
+        else if (action == GLFW_RELEASE)
+            isLeftMousePressed = false;
     }
 }
 
@@ -454,4 +487,74 @@ void processUI(int &windowWidth, int &windowHeight) {
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+}
+
+
+bool intersectRayTriangle(
+    const glm::vec3& orig,
+    const glm::vec3& dir,
+    const glm::vec3& v0,
+    const glm::vec3& v1,
+    const glm::vec3& v2,
+    float& t)
+{
+    const float EPSILON = 1e-7f;
+    glm::vec3 edge1 = v1 - v0;
+    glm::vec3 edge2 = v2 - v0;
+
+    glm::vec3 h = glm::cross(dir, edge2);
+    float a = glm::dot(edge1, h);
+    if (fabs(a) < EPSILON) return false;
+
+    float f = 1.0f / a;
+    glm::vec3 s = orig - v0;
+    float u = f * glm::dot(s, h);
+    if (u < 0.0f || u > 1.0f) return false;
+
+    glm::vec3 q = glm::cross(s, edge1);
+    float v = f * glm::dot(dir, q);
+    if (v < 0.0f || u + v > 1.0f) return false;
+
+    t = f * glm::dot(edge2, q);
+    return t > EPSILON;
+}
+
+
+bool PickModel(
+    const Model& model,
+    const glm::mat4& modelMatrix,
+    const glm::vec3& ray_origin,
+    const glm::vec3& ray_dir,
+    glm::vec3& outHitPoint)
+{
+    float closestT = FLT_MAX;
+    bool hit = false;
+
+    for (const Mesh& mesh : model.meshes)
+    {
+        for (size_t i = 0; i < mesh.indices.size(); i += 3)
+        {
+            glm::vec3 v0 = mesh.vertices[mesh.indices[i]].Position;
+            glm::vec3 v1 = mesh.vertices[mesh.indices[i + 1]].Position;
+            glm::vec3 v2 = mesh.vertices[mesh.indices[i + 2]].Position;
+
+            // MODEL → WORLD (CRITICAL)
+            v0 = glm::vec3(modelMatrix * glm::vec4(v0, 1.0f));
+            v1 = glm::vec3(modelMatrix * glm::vec4(v1, 1.0f));
+            v2 = glm::vec3(modelMatrix * glm::vec4(v2, 1.0f));
+
+            float t;
+            if (intersectRayTriangle(ray_origin, ray_dir, v0, v1, v2, t))
+            {
+                if (t < closestT)
+                {
+                    closestT = t;
+                    outHitPoint = ray_origin + t * ray_dir;
+                    hit = true;
+                }
+            }
+        }
+    }
+
+    return hit;
 }
