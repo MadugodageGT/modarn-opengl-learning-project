@@ -127,7 +127,6 @@ int main() {
     // Shaders
     Shader ourShader("model.vert", "model.frag");
     Shader gridShader("grid.vert", "grid.frag");
-	Shader debugShader("debugRay.vert", "debugRay.frag");
 
     // ImGui setup
     IMGUI_CHECKVERSION();
@@ -267,12 +266,11 @@ int main() {
 
     glDeleteVertexArrays(1, &gridVAO);
     glDeleteBuffers(1, &gridVBO);
-	glDeleteBuffers(1, &debugRayVBO);
-	glDeleteVertexArrays(1, &debugRayVAO);
+
 
     ourShader.~Shader();
 	gridShader.~Shader();
-	debugShader.~Shader();
+
 
 
     glfwTerminate();
