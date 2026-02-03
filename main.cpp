@@ -120,19 +120,6 @@ int main() {
     glEnableVertexAttribArray(0);
     glBindVertexArray(0);
 
-    //ray line 
-    unsigned int debugRayVAO, debugRayVBO;
-    glGenVertexArrays(1, &debugRayVAO);
-    glGenBuffers(1, &debugRayVBO);
-
-    glBindVertexArray(debugRayVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, debugRayVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * 2, nullptr, GL_DYNAMIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
-    glBindVertexArray(0);
-
-
 
     // Load model
     Model ourModel("assets/models/sample_model_obj/24_12_2024.obj");
@@ -263,29 +250,6 @@ int main() {
 				//std::cout << "Hit Point: (" << hitPoint.x << ", " << hitPoint.y << ", " << hitPoint.z << ")\n";
             }
         }
-
-
-
-        // render debug ray
-        glm::vec3 rayStart = ray_origin;
-        glm::vec3 rayEnd = ray_origin + ray_wor * 100.0f; // slightly shorter for visibility
-        glm::vec3 rayPoints[2] = { rayStart, rayEnd };
-
-        glBindBuffer(GL_ARRAY_BUFFER, debugRayVBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(rayPoints), rayPoints);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        glDisable(GL_DEPTH_TEST); // ensures line is visible
-        debugShader.use();
-        debugShader.setMat4("view", view);
-        debugShader.setMat4("projection", projection);
-        debugShader.setVec3("color", glm::vec3(0.0f, 1.0f, 0.0f));
-
-        glBindVertexArray(debugRayVAO);
-        glDrawArrays(GL_LINES, 0, 2);
-        glBindVertexArray(0);
-        glEnable(GL_DEPTH_TEST); // restore
-
 
 
 
