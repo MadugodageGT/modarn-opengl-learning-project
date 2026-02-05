@@ -267,8 +267,7 @@ int main() {
 
     glDeleteVertexArrays(1, &gridVAO);
     glDeleteBuffers(1, &gridVBO);
-	glDeleteBuffers(1, &debugRayVBO);
-	glDeleteVertexArrays(1, &debugRayVAO);
+
 
     ourShader.~Shader();
 	gridShader.~Shader();
@@ -460,8 +459,6 @@ void processUI(int &windowWidth, int &windowHeight, glm::vec3 &hitPoint) {
     // Camera Info
     if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::Text("Distance: %.2f", camera.Distance);
-        ImGui::Text("Pitch: %.2f", camera.Distance); //to be change
-        ImGui::Text("Yaw: %.2f", camera.Distance);
         if (ImGui::Button("Reset Camera")) {
             camera = OrbitCamera(glm::vec3(0.0f, 0.0f, 0.0f), 12.0f, 45.0f, 30.0f);
         }
