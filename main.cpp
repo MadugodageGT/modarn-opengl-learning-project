@@ -132,6 +132,7 @@ int main() {
 
     // Load shader
     Shader shader("default.vert", "default.frag");
+	Shader outlineShader("outline.vert", "outline.frag");
 
     //load textures
     unsigned int diffuseTex = LoadTexture("assets/textures/terrain/rocky_terrain_03_diff_1k.png");
@@ -150,7 +151,14 @@ int main() {
 
         // Render
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		glEnable(GL_STENCIL_TEST);
+
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
 
         // Activate shader
         shader.use();
@@ -196,6 +204,29 @@ int main() {
         // Draw cube
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);
+		glDisable(GL_DEPTH_TEST);
+
+		float scale = 1.05f;
+		model = glm::scale(model, glm::vec3(scale, scale, scale));
+        
+        outlineShader.use();
+
+		outlineShader.setVec3("outlineColor", glm::vec3(0.2f, 0.28f, 0.68f));
+
+        outlineShader.setMat4("model", model);
+		outlineShader.setMat4("view", view);
+		outlineShader.setMat4("projection", projection);
+
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		glStencilMask(0xFF);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glEnable(GL_DEPTH_TEST);
+
 
         glfwSwapBuffers(window);
         glfwPollEvents();

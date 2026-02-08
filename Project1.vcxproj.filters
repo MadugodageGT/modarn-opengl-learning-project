@@ -118,10 +118,10 @@
     <None Include="grid.vert">
       <Filter>Resource Files\shaders</Filter>
     </None>
-    <None Include="light.frag">
+    <None Include="outline.frag">
       <Filter>Resource Files\shaders</Filter>
     </None>
-    <None Include="light.vert">
+    <None Include="outline.vert">
       <Filter>Resource Files\shaders</Filter>
     </None>
     <None Include="model.vert">
