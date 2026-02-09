@@ -186,8 +186,8 @@
     <ClInclude Include="Shader.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="debugRay.frag" />
-    <None Include="debugRay.vert" />
+    <None Include="blending.frag" />
+    <None Include="blending.vert" />
     <None Include="default.frag" />
     <None Include="default.vert" />
     <None Include="grid.frag" />

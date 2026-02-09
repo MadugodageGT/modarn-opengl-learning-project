@@ -131,17 +131,14 @@ int main() {
     glEnableVertexAttribArray(2);
 
     // Load shader
-    Shader shader("default.vert", "default.frag");
-	Shader outlineShader("outline.vert", "outline.frag");
+    Shader shader("blending.vert", "blending.frag");
+
 
     //load textures
-    unsigned int diffuseTex = LoadTexture("assets/textures/terrain/rocky_terrain_03_diff_1k.png");
-    unsigned int ambiTex = LoadTexture("assets/textures/terrain/rocky_terrain_03_ao_1k.png");
-    unsigned int specTex = LoadTexture("assets/textures/terrain/rocky_terrain_03_rough_1k.png");
+    unsigned int grassTexture = LoadTexture("assets/textures/grass/grass.png");
+
 
   
-
-
 
     // Render loop
     while (!glfwWindowShouldClose(window)) {
@@ -151,43 +148,19 @@ int main() {
 
         // Render
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-		glEnable(GL_STENCIL_TEST);
-
-		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilMask(0xFF);
 
         // Activate shader
         shader.use();
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuseTex);
-
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, ambiTex);
-
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, specTex);
+        glBindTexture(GL_TEXTURE_2D, grassTexture);
 
 
-        shader.setInt("material.ambient",1);
-        shader.setInt("material.diffuse", 0);
-        shader.setInt("material.specular", 2);
-        shader.setFloat("material.shininess", 32.0f);
+        shader.setInt("texture1",0);
 
 
-        shader.setVec3("light.position", glm::vec3(1.5f, 1.5f, 0.0f));
-        shader.setVec3("light.ambient", glm::vec3(0.2f, 0.2f, 0.2f));
-        shader.setVec3("light.diffuse", glm::vec3(0.4f, 0.3f, 0.2f));
-        shader.setVec3("light.specular", glm::vec3(1.0f, 1.0f, 1.0f));
-
-        // Add missing uniforms
-        shader.setVec3("viewPos", camera.GetPosition());
-        shader.setVec3("objectColor", glm::vec3(1.0f, 1.0f, 1.0f));
-        shader.setVec3("lightPos", glm::vec3(1.2f, 1.0f, 2.0f));
 
 
         // Create transformations
@@ -204,28 +177,6 @@ int main() {
         // Draw cube
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
-
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-		glStencilMask(0x00);
-		glDisable(GL_DEPTH_TEST);
-
-		float scale = 1.05f;
-		model = glm::scale(model, glm::vec3(scale, scale, scale));
-        
-        outlineShader.use();
-
-		outlineShader.setVec3("outlineColor", glm::vec3(0.2f, 0.28f, 0.68f));
-
-        outlineShader.setMat4("model", model);
-		outlineShader.setMat4("view", view);
-		outlineShader.setMat4("projection", projection);
-
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-
-		glStencilMask(0xFF);
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glEnable(GL_DEPTH_TEST);
 
 
         glfwSwapBuffers(window);

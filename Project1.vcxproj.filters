@@ -130,10 +130,10 @@
     <None Include="model.frag">
       <Filter>Resource Files\shaders</Filter>
     </None>
-    <None Include="debugRay.vert">
+    <None Include="blending.vert">
       <Filter>Resource Files\shaders</Filter>
     </None>
-    <None Include="debugRay.frag">
+    <None Include="blending.frag">
       <Filter>Resource Files\shaders</Filter>
     </None>
   </ItemGroup>
