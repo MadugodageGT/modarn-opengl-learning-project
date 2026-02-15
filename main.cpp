@@ -117,6 +117,8 @@ int main() {
          -0.5f, 0.5f,-0.5f,  0,1,0,   0,1
     };
 
+
+
     // Setup cube VAO
     unsigned int VBO, VAO;
     glGenVertexArrays(1, &VAO);
@@ -137,17 +139,62 @@ int main() {
     glEnableVertexAttribArray(2);
 
     // Load shader
-    Shader shader("blending.vert", "blending.frag");
+    Shader shader("model.vert", "model.frag");
 
 
     //load textures
-    unsigned int grassTexture = LoadTexture("assets/textures/grass/grass.png");
+    unsigned int grassTexture = LoadTexture("assets/textures/moss_wood_diff_1k.png");
+    
 
 
-  
+    //set up framebuffer
+
+	unsigned int fbo;
+    glGenFramebuffers(1, &fbo);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+
+    unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+
+    unsigned int rbo;
+    glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+
+
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "Framebuffer is complete!" << std::endl;
+    else
+        std::cout << "Framebuffer is not complete!" << std::endl;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    
+
+
+
 
     // Render loop
     while (!glfwWindowShouldClose(window)) {
+
+
+
         // Input
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
@@ -167,9 +214,6 @@ int main() {
         shader.setInt("texture1",0);
 
 
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
-        glFrontFace(GL_CW);
 
         // Create transformations
         glm::mat4 model = glm::mat4(1.0f);
@@ -192,6 +236,7 @@ int main() {
     }
 
     // Cleanup
+    glDeleteFramebuffers(1, &fbo);
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glfwTerminate();
