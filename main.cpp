@@ -28,8 +28,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void generateGrid(int size, float spacing);
-
 void processUI(int& windowWidth, int& windowHeight, glm::vec3 &hitPoint);
+std::vector<unsigned char> generateTexture();
 
 bool intersectRayTriangle(
     const glm::vec3& orig,
@@ -80,6 +80,13 @@ static float modelScale = 5.0f;
 static float modelPosY = -0.85f;
 static bool showWireframe = false;
 
+//Generated image diamentions
+const int IMG_WIDTH = 2048;
+const int IMG_HEIGHT = 2048;
+
+
+
+
 int main() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -123,6 +130,40 @@ int main() {
 
     // Load model
     Model ourModel("assets/models/sample_model_obj/24_12_2024.obj");
+
+    //load texture to openGL
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    auto textureData = generateTexture();
+
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGBA,
+        IMG_WIDTH,
+        IMG_HEIGHT,
+        0,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        textureData.data()
+    );
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    // Filtering
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Wrapping
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+
+
+    std::cout << textureID << std::endl;
+
 
     // Shaders
     Shader ourShader("model.vert", "model.frag");
@@ -201,6 +242,12 @@ int main() {
         }
 
         ourShader.use();
+
+        //glActiveTexture(GL_TEXTURE2);
+        //glBindTexture(GL_TEXTURE_2D, textureID);
+
+        //ourShader.setInt("generated_texture", 2);
+
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, modelPosY, 0.0f));
         model = glm::scale(model, glm::vec3(modelScale));
@@ -570,3 +617,29 @@ bool PickModel(
 
     return hit;
 }
+
+
+
+
+
+std::vector<unsigned char> generateTexture()
+{
+    std::vector<unsigned char> data(IMG_WIDTH * IMG_HEIGHT * 4); // RGBA
+
+    for (int y = 0; y < IMG_HEIGHT; y++)
+    {
+        for (int x = 0; x < IMG_WIDTH; x++)
+        {
+            int index = (y * IMG_WIDTH + x) * 4;
+
+            // Simple gradient
+            data[index + 0] = (unsigned char)((float)x / IMG_WIDTH * 255);  // R
+            data[index + 1] = (unsigned char)((float)y / IMG_HEIGHT * 255); // G
+            data[index + 2] = 128;                                      // B
+            data[index + 3] = 255;                                      // A
+        }
+    }
+
+    return data;
+}
+
