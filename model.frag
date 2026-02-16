@@ -12,7 +12,11 @@ void main()
     //FragColor = texture(texture_diffuse1, TexCoords);
     vec4 texColor = texture(generated_texture, TexCoords);
 
-    if(texColor.a < 0.1)
-        discard;
-    FragColor = texColor;
+    //if(texColor.a < 0.1)
+        //discard;
+
+    //FragColor = texture(texture_diffuse1, TexCoords) *texture(generated_texture, TexCoords);
+
+    FragColor = mix(texture(texture_diffuse1, TexCoords), texColor, texColor.a);
+
 }
