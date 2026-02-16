@@ -243,10 +243,10 @@ int main() {
 
         ourShader.use();
 
-        //glActiveTexture(GL_TEXTURE2);
-        //glBindTexture(GL_TEXTURE_2D, textureID);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, textureID);
 
-        //ourShader.setInt("generated_texture", 2);
+        ourShader.setInt("generated_texture", 2);
 
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, modelPosY, 0.0f));
@@ -636,7 +636,11 @@ std::vector<unsigned char> generateTexture()
             data[index + 0] = (unsigned char)((float)x / IMG_WIDTH * 255);  // R
             data[index + 1] = (unsigned char)((float)y / IMG_HEIGHT * 255); // G
             data[index + 2] = 128;                                      // B
-            data[index + 3] = 255;                                      // A
+
+            if (x < 1000)
+                data[index + 3] = 255;                        // A
+            else
+                data[index + 3] = 0;
         }
     }
 
