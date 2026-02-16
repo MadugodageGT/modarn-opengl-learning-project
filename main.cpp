@@ -28,7 +28,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void generateGrid(int size, float spacing);
-void processUI(int& windowWidth, int& windowHeight, glm::vec3 &hitPoint);
+void processUI(int& windowWidth, int& windowHeight, glm::vec3 &hitPoint, glm::vec2& hitUV);
 std::vector<unsigned char> generateTexture();
 
 bool intersectRayTriangle(
@@ -37,14 +37,17 @@ bool intersectRayTriangle(
     const glm::vec3& v0,
     const glm::vec3& v1,
     const glm::vec3& v2,
-    float& t);
+    float& t,
+    float& outU,
+    float& outV);
 
 bool PickModel(
     const Model& model,
     const glm::mat4& modelMatrix,
     const glm::vec3& ray_origin,
     const glm::vec3& ray_dir,
-    glm::vec3& outHitPoint);
+    glm::vec3& outHitPoint,
+    glm::vec2& outHitUV);
 
 // Settings
 const unsigned int SCR_WIDTH = 1920;
@@ -287,11 +290,12 @@ int main() {
 		glm::vec3 ray_origin = camera.GetPosition();
 
 		glm::vec3 hitPoint(0.0f);
+        glm::vec2 hitUV(0.0f);
         
         if (isLeftMousePressed)
         {
            // glm::vec3 hitPoint;
-            if (PickModel(ourModel, model, ray_origin, ray_wor, hitPoint))
+            if (PickModel(ourModel, model, ray_origin, ray_wor, hitPoint, hitUV))
             {
                 //annotations.push_back(hitPoint);
 				//std::cout << "Hit Point: (" << hitPoint.x << ", " << hitPoint.y << ", " << hitPoint.z << ")\n";
@@ -301,7 +305,7 @@ int main() {
 
 
         //Render UI
-		processUI(windowWidth, windowHeight, hitPoint);
+		processUI(windowWidth, windowHeight, hitPoint, hitUV);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -451,7 +455,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     camera.ProcessZoom(yoffset);
 }
 
-void processUI(int &windowWidth, int &windowHeight, glm::vec3 &hitPoint) {
+void processUI(int &windowWidth, int &windowHeight, glm::vec3 &hitPoint, glm::vec2 &hitUV) {
 
     glDisable(GL_SCISSOR_TEST);
 
@@ -526,6 +530,10 @@ void processUI(int &windowWidth, int &windowHeight, glm::vec3 &hitPoint) {
         ImGui::TextWrapped("x: %.2f", hitPoint.x);
         ImGui::TextWrapped("y: %.2f", hitPoint.y);
         ImGui::TextWrapped("z: %.2f", hitPoint.z);
+        ImGui::TextWrapped("Hit UV");
+        ImGui::TextWrapped("x: %.2f", hitUV.x);
+        ImGui::TextWrapped("y: %.2f", hitUV.y);
+  
     }
 
     ImGui::End();
@@ -555,9 +563,12 @@ bool intersectRayTriangle(
     const glm::vec3& v0,
     const glm::vec3& v1,
     const glm::vec3& v2,
-    float& t)
+    float& t,
+    float& outU,
+    float& outV)
 {
     const float EPSILON = 1e-7f;
+
     glm::vec3 edge1 = v1 - v0;
     glm::vec3 edge2 = v2 - v0;
 
@@ -567,6 +578,7 @@ bool intersectRayTriangle(
 
     float f = 1.0f / a;
     glm::vec3 s = orig - v0;
+
     float u = f * glm::dot(s, h);
     if (u < 0.0f || u > 1.0f) return false;
 
@@ -574,9 +586,18 @@ bool intersectRayTriangle(
     float v = f * glm::dot(dir, q);
     if (v < 0.0f || u + v > 1.0f) return false;
 
-    t = f * glm::dot(edge2, q);
-    return t > EPSILON;
+    float tempT = f * glm::dot(edge2, q);
+    if (tempT > EPSILON)
+    {
+        t = tempT;
+        outU = u;
+        outV = v;
+        return true;
+    }
+
+    return false;
 }
+
 
 
 bool PickModel(
@@ -584,7 +605,8 @@ bool PickModel(
     const glm::mat4& modelMatrix,
     const glm::vec3& ray_origin,
     const glm::vec3& ray_dir,
-    glm::vec3& outHitPoint)
+    glm::vec3& outHitPoint,
+    glm::vec2& outHitUV)
 {
     float closestT = FLT_MAX;
     bool hit = false;
@@ -597,21 +619,43 @@ bool PickModel(
             glm::vec3 v1 = mesh.vertices[mesh.indices[i + 1]].Position;
             glm::vec3 v2 = mesh.vertices[mesh.indices[i + 2]].Position;
 
+            glm::vec2 uv0 = mesh.vertices[mesh.indices[i]].TexCoords;
+            glm::vec2 uv1 = mesh.vertices[mesh.indices[i + 1]].TexCoords;
+            glm::vec2 uv2 = mesh.vertices[mesh.indices[i + 2]].TexCoords;
+
+
             // MODEL → WORLD (CRITICAL)
             v0 = glm::vec3(modelMatrix * glm::vec4(v0, 1.0f));
             v1 = glm::vec3(modelMatrix * glm::vec4(v1, 1.0f));
             v2 = glm::vec3(modelMatrix * glm::vec4(v2, 1.0f));
 
-            float t;
-            if (intersectRayTriangle(ray_origin, ray_dir, v0, v1, v2, t))
+            float t, u, v;
+
+            if (intersectRayTriangle(ray_origin, ray_dir, v0, v1, v2, t, u, v))
             {
                 if (t < closestT)
                 {
                     closestT = t;
+
+                    float w = 1.0f - u - v;
+
+                    glm::vec2 hitUV =
+                        w * uv0 +
+                        u * uv1 +
+                        v * uv2;
+
                     outHitPoint = ray_origin + t * ray_dir;
+
+                    outHitUV = glm::vec2(hitUV.x, hitUV.y);
+
+                    //std::cout << "Hit UV: "
+                    //    << hitUV.x << ", "
+                    //    << hitUV.y << "\n";
+
                     hit = true;
                 }
             }
+
         }
     }
 
