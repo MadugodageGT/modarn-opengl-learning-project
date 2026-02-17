@@ -49,6 +49,15 @@ bool PickModel(
     glm::vec3& outHitPoint,
     glm::vec2& outHitUV);
 
+void paintBrush(
+    std::vector<unsigned char>& texData,
+    int texWidth,
+    int texHeight,
+    int centerX,
+    int centerY,
+    int radius,
+    glm::vec4 color);
+
 // Settings
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1080;
@@ -88,6 +97,7 @@ const int IMG_WIDTH = 2048;
 const int IMG_HEIGHT = 2048;
 
 
+std::vector<unsigned char> textureData(2048 * 2048 * 4);
 
 
 int main() {
@@ -297,8 +307,17 @@ int main() {
            // glm::vec3 hitPoint;
             if (PickModel(ourModel, model, ray_origin, ray_wor, hitPoint, hitUV))
             {
-                //annotations.push_back(hitPoint);
-				//std::cout << "Hit Point: (" << hitPoint.x << ", " << hitPoint.y << ", " << hitPoint.z << ")\n";
+                int texX = hitUV.x * 2048;
+                int texY = hitUV.y * 2048;
+
+
+				// Paint on the texture at the hit UV coordinates
+				paintBrush(textureData, IMG_WIDTH, IMG_HEIGHT, texX, texY, 10, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+
+				// Update the OpenGL texture with the modified data
+				glBindTexture(GL_TEXTURE_2D, textureID);
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, IMG_WIDTH, IMG_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, textureData.data());
+                glGenerateMipmap(GL_TEXTURE_2D);
             }
         }
 
@@ -648,9 +667,6 @@ bool PickModel(
 
                     outHitUV = glm::vec2(hitUV.x, hitUV.y);
 
-                    //std::cout << "Hit UV: "
-                    //    << hitUV.x << ", "
-                    //    << hitUV.y << "\n";
 
                     hit = true;
                 }
@@ -677,17 +693,48 @@ std::vector<unsigned char> generateTexture()
             int index = (y * IMG_WIDTH + x) * 4;
 
             // Simple gradient
-            data[index + 0] = (unsigned char)((float)x / IMG_WIDTH * 255);  // R
-            data[index + 1] = (unsigned char)((float)y / IMG_HEIGHT * 255); // G
+            data[index + 0] =  255;  // R
+            data[index + 1] =  255; // G
             data[index + 2] = 128;                                      // B
-
-            if (x < 1000)
-                data[index + 3] = 255;                        // A
-            else
-                data[index + 3] = 0;
+            data[index + 3] = 0;                        // A
+            
         }
     }
 
     return data;
 }
 
+
+void paintBrush(
+    std::vector<unsigned char>& texData,
+    int texWidth,
+    int texHeight,
+    int centerX,
+    int centerY,
+    int radius,
+    glm::vec4 color)   // color in 0–1 range
+{
+    int startX = std::max(0, centerX - radius);
+    int endX = std::min(texWidth - 1, centerX + radius);
+    int startY = std::max(0, centerY - radius);
+    int endY = std::min(texHeight - 1, centerY + radius);
+
+    for (int y = startY; y <= endY; y++)
+    {
+        for (int x = startX; x <= endX; x++)
+        {
+            int dx = x - centerX;
+            int dy = y - centerY;
+
+            if (dx * dx + dy * dy <= radius * radius)
+            {
+                int index = (y * texWidth + x) * 4;
+
+                texData[index + 0] = color.r * 255;
+                texData[index + 1] = color.g * 255;
+                texData[index + 2] = color.b * 255;
+                texData[index + 3] = color.a * 255;
+            }
+        }
+    }
+}
