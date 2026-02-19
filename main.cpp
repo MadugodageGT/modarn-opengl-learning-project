@@ -91,6 +91,11 @@ static float gridColor[3] = { 0.6f, 0.6f, 0.6f };
 static float modelScale = 5.0f;
 static float modelPosY = -0.85f;
 static bool showWireframe = false;
+// Painting state
+static bool paintModeEnabled = false;
+static bool eraseMode = false;
+static float brushColor[4] = { 1.0f, 0.0f, 0.0f, 1.0f }; // RGBA
+static int brushRadius = 20;
 
 //Generated image diamentions
 const int IMG_WIDTH = 2048;
@@ -126,6 +131,9 @@ int main() {
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
+
+    GLFWcursor* crosshairCursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
+    GLFWcursor* arrowCursor = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
 
     // Generate grid
     generateGrid(20, 1.0f);
@@ -301,26 +309,37 @@ int main() {
 
 		glm::vec3 hitPoint(0.0f);
         glm::vec2 hitUV(0.0f);
+
+        if (paintModeEnabled)
+            glfwSetCursor(window, crosshairCursor);
+        else
+            glfwSetCursor(window, arrowCursor);
         
-        if (isLeftMousePressed)
+        if (isLeftMousePressed && paintModeEnabled)
         {
-           // glm::vec3 hitPoint;
             if (PickModel(ourModel, model, ray_origin, ray_wor, hitPoint, hitUV))
             {
-                int texX = hitUV.x * 2048;
-                int texY = hitUV.y * 2048;
+                int texX = (int)(hitUV.x * IMG_WIDTH);
+                int texY = (int)(hitUV.y * IMG_HEIGHT);
 
+                glm::vec4 paintColor;
+                if (eraseMode)
+                {
+                    // Erase restores the base texture color (your yellow-ish default)
+                    paintColor = glm::vec4(1.0f, 1.0f, 0.5f, 0.0f);
+                }
+                else
+                {
+                    paintColor = glm::vec4(brushColor[0], brushColor[1], brushColor[2], brushColor[3]);
+                }
 
-				// Paint on the texture at the hit UV coordinates
-				paintBrush(textureData, IMG_WIDTH, IMG_HEIGHT, texX, texY, 10, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+                paintBrush(textureData, IMG_WIDTH, IMG_HEIGHT, texX, texY, brushRadius, paintColor);
 
-				// Update the OpenGL texture with the modified data
-				glBindTexture(GL_TEXTURE_2D, textureID);
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, IMG_WIDTH, IMG_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, textureData.data());
+                glBindTexture(GL_TEXTURE_2D, textureID);
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, IMG_WIDTH, IMG_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, textureData.data());
                 glGenerateMipmap(GL_TEXTURE_2D);
             }
         }
-
 
 
         //Render UI
@@ -343,6 +362,8 @@ int main() {
 	gridShader.~Shader();
 	debugShader.~Shader();
 
+    glfwDestroyCursor(crosshairCursor);
+    glfwDestroyCursor(arrowCursor);
 
     glfwTerminate();
     return 0;
@@ -418,6 +439,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     else if (isMiddleMousePressed) {
         camera.ProcessPan(xoffset, yoffset);
     }
+
+
 
 }
 
@@ -542,6 +565,47 @@ void processUI(int &windowWidth, int &windowHeight, glm::vec3 &hitPoint, glm::ve
         ImGui::TextWrapped("Scroll: Zoom in/out");
         ImGui::TextWrapped("G: Toggle grid");
         ImGui::TextWrapped("ESC: Exit");
+    }
+
+    if (ImGui::CollapsingHeader("Painting", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        // Toggle paint mode
+        ImGui::Checkbox("Enable Paint Mode", &paintModeEnabled);
+
+        if (paintModeEnabled)
+        {
+            ImGui::Spacing();
+
+            // Erase toggle (mutually exclusive feel)
+            if (eraseMode)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.2f, 0.2f, 1.0f));
+                if (ImGui::Button("Mode: ERASE  ")) eraseMode = false;
+                ImGui::PopStyleColor();
+            }
+            else
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
+                if (ImGui::Button("Mode: PAINT  ")) eraseMode = true;
+                ImGui::PopStyleColor();
+            }
+
+            ImGui::Spacing();
+
+            // Color picker (only shown in paint mode, not erase)
+            if (!eraseMode)
+            {
+                ImGui::Text("Brush Color:");
+                ImGui::ColorEdit4("##BrushColor", brushColor);
+            }
+
+            ImGui::Spacing();
+            ImGui::Text("Brush Radius:");
+            ImGui::SliderInt("##BrushRadius", &brushRadius, 1, 100);
+
+            ImGui::Spacing();
+            ImGui::TextDisabled("Left Click on model to paint");
+        }
     }
 
     if (ImGui::CollapsingHeader("Debug Info", ImGuiTreeNodeFlags_DefaultOpen)) {
