@@ -196,6 +196,8 @@
     <None Include="outline.vert" />
     <None Include="model.frag" />
     <None Include="model.vert" />
+    <None Include="quad.frag" />
+    <None Include="quad.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\textures\brick_texture.jpg" />

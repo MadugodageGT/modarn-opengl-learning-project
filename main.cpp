@@ -64,8 +64,7 @@ int main() {
         return -1;
     }
 
-    // Enable depth testing
-    glEnable(GL_DEPTH_TEST);
+
     // Cube vertices with normals and texture coordinates
     float vertices[] = {
         // ---------- Back face (-Z)
@@ -117,7 +116,15 @@ int main() {
          -0.5f, 0.5f,-0.5f,  0,1,0,   0,1
     };
 
-
+    float quadVertices[] = {
+        // positions // texCoords
+        -1.0f, 1.0f, 0.0f, 1.0f,
+        -1.0f, -1.0f, 0.0f, 0.0f,
+        1.0f, -1.0f, 1.0f, 0.0f,
+        -1.0f, 1.0f, 0.0f, 1.0f,
+        1.0f, -1.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 1.0f, 1.0f
+    };
 
     // Setup cube VAO
     unsigned int VBO, VAO;
@@ -138,9 +145,28 @@ int main() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
+
+	//screen quad setup
+	unsigned int screenQuadVAO, screenQuadVBO;
+	glGenVertexArrays(1, &screenQuadVAO);
+	glGenBuffers(1, &screenQuadVBO);
+
+	glBindVertexArray(screenQuadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, screenQuadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+
+	// Position attribute
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	// Texture coordinate attribute
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+
+
     // Load shader
     Shader shader("model.vert", "model.frag");
-
+	Shader screenShader("quad.vert", "quad.frag");
 
     //load textures
     unsigned int grassTexture = LoadTexture("assets/textures/moss_wood_diff_1k.png");
@@ -155,16 +181,16 @@ int main() {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
 
-    unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
+    unsigned int texColorBuffer;
+	glGenTextures(1, &texColorBuffer);
+	glBindTexture(GL_TEXTURE_2D, texColorBuffer);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texColorBuffer, 0);
 
     unsigned int rbo;
     glGenRenderbuffers(1, &rbo);
@@ -189,7 +215,6 @@ int main() {
 
 
 
-
     // Render loop
     while (!glfwWindowShouldClose(window)) {
 
@@ -199,23 +224,22 @@ int main() {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
 
-        // Render
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+        //first pass
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
 
 
-        // Activate shader
+        // draw scene
         shader.use();
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, grassTexture);
 
-
         shader.setInt("texture1",0);
 
-
-
-        // Create transformations
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(45.0f),
@@ -226,9 +250,30 @@ int main() {
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
 
-        // Draw cube
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+
+		//second pass - render to screen
+		glBindFramebuffer(GL_FRAMEBUFFER, 0); //back to default
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		screenShader.use();
+		glDisable(GL_DEPTH_TEST);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texColorBuffer);
+		screenShader.setInt("screenTexture", 0);
+
+        
+
+		glBindVertexArray(screenQuadVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+
+
+
 
 
         glfwSwapBuffers(window);
