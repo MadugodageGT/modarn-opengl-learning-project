@@ -28,8 +28,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void generateGrid(int size, float spacing);
-
-void processUI(int& windowWidth, int& windowHeight, glm::vec3 &hitPoint);
+void processUI(int& windowWidth, int& windowHeight, glm::vec3 &hitPoint, glm::vec2& hitUV);
+std::vector<unsigned char> generateTexture();
 
 bool intersectRayTriangle(
     const glm::vec3& orig,
@@ -37,14 +37,26 @@ bool intersectRayTriangle(
     const glm::vec3& v0,
     const glm::vec3& v1,
     const glm::vec3& v2,
-    float& t);
+    float& t,
+    float& outU,
+    float& outV);
 
 bool PickModel(
     const Model& model,
     const glm::mat4& modelMatrix,
     const glm::vec3& ray_origin,
     const glm::vec3& ray_dir,
-    glm::vec3& outHitPoint);
+    glm::vec3& outHitPoint,
+    glm::vec2& outHitUV);
+
+void paintBrush(
+    std::vector<unsigned char>& texData,
+    int texWidth,
+    int texHeight,
+    int centerX,
+    int centerY,
+    int radius,
+    glm::vec4 color);
 
 // Settings
 const unsigned int SCR_WIDTH = 1920;
@@ -79,6 +91,19 @@ static float gridColor[3] = { 0.6f, 0.6f, 0.6f };
 static float modelScale = 5.0f;
 static float modelPosY = -0.85f;
 static bool showWireframe = false;
+// Painting state
+static bool paintModeEnabled = false;
+static bool eraseMode = false;
+static float brushColor[4] = { 1.0f, 0.0f, 0.0f, 1.0f }; // RGBA
+static int brushRadius = 20;
+
+//Generated image diamentions
+const int IMG_WIDTH = 2048;
+const int IMG_HEIGHT = 2048;
+
+
+std::vector<unsigned char> textureData(2048 * 2048 * 4);
+
 
 int main() {
     glfwInit();
@@ -107,6 +132,9 @@ int main() {
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
+    GLFWcursor* crosshairCursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
+    GLFWcursor* arrowCursor = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+
     // Generate grid
     generateGrid(20, 1.0f);
 
@@ -123,6 +151,40 @@ int main() {
 
     // Load model
     Model ourModel("assets/models/sample_model_obj/24_12_2024.obj");
+
+    //load texture to openGL
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    auto textureData = generateTexture();
+
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGBA,
+        IMG_WIDTH,
+        IMG_HEIGHT,
+        0,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        textureData.data()
+    );
+
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    // Filtering
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Wrapping
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+
+
+    std::cout << textureID << std::endl;
+
 
     // Shaders
     Shader ourShader("model.vert", "model.frag");
@@ -200,6 +262,12 @@ int main() {
         }
 
         ourShader.use();
+
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+
+        ourShader.setInt("generated_texture", 2);
+
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, modelPosY, 0.0f));
         model = glm::scale(model, glm::vec3(modelScale));
@@ -239,21 +307,42 @@ int main() {
 		glm::vec3 ray_origin = camera.GetPosition();
 
 		glm::vec3 hitPoint(0.0f);
+        glm::vec2 hitUV(0.0f);
+
+        if (paintModeEnabled)
+            glfwSetCursor(window, crosshairCursor);
+        else
+            glfwSetCursor(window, arrowCursor);
         
-        if (isLeftMousePressed)
+        if (isLeftMousePressed && paintModeEnabled)
         {
-           // glm::vec3 hitPoint;
-            if (PickModel(ourModel, model, ray_origin, ray_wor, hitPoint))
+            if (PickModel(ourModel, model, ray_origin, ray_wor, hitPoint, hitUV))
             {
-                //annotations.push_back(hitPoint);
-				//std::cout << "Hit Point: (" << hitPoint.x << ", " << hitPoint.y << ", " << hitPoint.z << ")\n";
+                int texX = (int)(hitUV.x * IMG_WIDTH);
+                int texY = (int)(hitUV.y * IMG_HEIGHT);
+
+                glm::vec4 paintColor;
+                if (eraseMode)
+                {
+                    // Erase restores the base texture color (your yellow-ish default)
+                    paintColor = glm::vec4(1.0f, 1.0f, 0.5f, 0.0f);
+                }
+                else
+                {
+                    paintColor = glm::vec4(brushColor[0], brushColor[1], brushColor[2], brushColor[3]);
+                }
+
+                paintBrush(textureData, IMG_WIDTH, IMG_HEIGHT, texX, texY, brushRadius, paintColor);
+
+                glBindTexture(GL_TEXTURE_2D, textureID);
+                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, IMG_WIDTH, IMG_HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, textureData.data());
+                glGenerateMipmap(GL_TEXTURE_2D);
             }
         }
 
 
-
         //Render UI
-		processUI(windowWidth, windowHeight, hitPoint);
+		processUI(windowWidth, windowHeight, hitPoint, hitUV);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -272,6 +361,8 @@ int main() {
 	gridShader.~Shader();
 
 
+    glfwDestroyCursor(crosshairCursor);
+    glfwDestroyCursor(arrowCursor);
 
     glfwTerminate();
     return 0;
@@ -348,6 +439,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
         camera.ProcessPan(xoffset, yoffset);
     }
 
+
+
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
@@ -403,7 +496,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
     camera.ProcessZoom(yoffset);
 }
 
-void processUI(int &windowWidth, int &windowHeight, glm::vec3 &hitPoint) {
+void processUI(int &windowWidth, int &windowHeight, glm::vec3 &hitPoint, glm::vec2 &hitUV) {
 
     glDisable(GL_SCISSOR_TEST);
 
@@ -458,8 +551,6 @@ void processUI(int &windowWidth, int &windowHeight, glm::vec3 &hitPoint) {
     // Camera Info
     if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::Text("Distance: %.2f", camera.Distance);
-        ImGui::Text("Pitch: %.2f", camera.Distance); //to be change
-        ImGui::Text("Yaw: %.2f", camera.Distance);
         if (ImGui::Button("Reset Camera")) {
             camera = OrbitCamera(glm::vec3(0.0f, 0.0f, 0.0f), 12.0f, 45.0f, 30.0f);
         }
@@ -475,11 +566,56 @@ void processUI(int &windowWidth, int &windowHeight, glm::vec3 &hitPoint) {
         ImGui::TextWrapped("ESC: Exit");
     }
 
+    if (ImGui::CollapsingHeader("Painting", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        // Toggle paint mode
+        ImGui::Checkbox("Enable Paint Mode", &paintModeEnabled);
+
+        if (paintModeEnabled)
+        {
+            ImGui::Spacing();
+
+            // Erase toggle (mutually exclusive feel)
+            if (eraseMode)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.2f, 0.2f, 1.0f));
+                if (ImGui::Button("Mode: ERASE  ")) eraseMode = false;
+                ImGui::PopStyleColor();
+            }
+            else
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
+                if (ImGui::Button("Mode: PAINT  ")) eraseMode = true;
+                ImGui::PopStyleColor();
+            }
+
+            ImGui::Spacing();
+
+            // Color picker (only shown in paint mode, not erase)
+            if (!eraseMode)
+            {
+                ImGui::Text("Brush Color:");
+                ImGui::ColorEdit4("##BrushColor", brushColor);
+            }
+
+            ImGui::Spacing();
+            ImGui::Text("Brush Radius:");
+            ImGui::SliderInt("##BrushRadius", &brushRadius, 1, 100);
+
+            ImGui::Spacing();
+            ImGui::TextDisabled("Left Click on model to paint");
+        }
+    }
+
     if (ImGui::CollapsingHeader("Debug Info", ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::TextWrapped("Hit Point");
         ImGui::TextWrapped("x: %.2f", hitPoint.x);
         ImGui::TextWrapped("y: %.2f", hitPoint.y);
         ImGui::TextWrapped("z: %.2f", hitPoint.z);
+        ImGui::TextWrapped("Hit UV");
+        ImGui::TextWrapped("x: %.2f", hitUV.x);
+        ImGui::TextWrapped("y: %.2f", hitUV.y);
+  
     }
 
     ImGui::End();
@@ -509,9 +645,12 @@ bool intersectRayTriangle(
     const glm::vec3& v0,
     const glm::vec3& v1,
     const glm::vec3& v2,
-    float& t)
+    float& t,
+    float& outU,
+    float& outV)
 {
     const float EPSILON = 1e-7f;
+
     glm::vec3 edge1 = v1 - v0;
     glm::vec3 edge2 = v2 - v0;
 
@@ -521,6 +660,7 @@ bool intersectRayTriangle(
 
     float f = 1.0f / a;
     glm::vec3 s = orig - v0;
+
     float u = f * glm::dot(s, h);
     if (u < 0.0f || u > 1.0f) return false;
 
@@ -528,9 +668,18 @@ bool intersectRayTriangle(
     float v = f * glm::dot(dir, q);
     if (v < 0.0f || u + v > 1.0f) return false;
 
-    t = f * glm::dot(edge2, q);
-    return t > EPSILON;
+    float tempT = f * glm::dot(edge2, q);
+    if (tempT > EPSILON)
+    {
+        t = tempT;
+        outU = u;
+        outV = v;
+        return true;
+    }
+
+    return false;
 }
+
 
 
 bool PickModel(
@@ -538,7 +687,8 @@ bool PickModel(
     const glm::mat4& modelMatrix,
     const glm::vec3& ray_origin,
     const glm::vec3& ray_dir,
-    glm::vec3& outHitPoint)
+    glm::vec3& outHitPoint,
+    glm::vec2& outHitUV)
 {
     float closestT = FLT_MAX;
     bool hit = false;
@@ -551,23 +701,103 @@ bool PickModel(
             glm::vec3 v1 = mesh.vertices[mesh.indices[i + 1]].Position;
             glm::vec3 v2 = mesh.vertices[mesh.indices[i + 2]].Position;
 
+            glm::vec2 uv0 = mesh.vertices[mesh.indices[i]].TexCoords;
+            glm::vec2 uv1 = mesh.vertices[mesh.indices[i + 1]].TexCoords;
+            glm::vec2 uv2 = mesh.vertices[mesh.indices[i + 2]].TexCoords;
+
+
             // MODEL → WORLD (CRITICAL)
             v0 = glm::vec3(modelMatrix * glm::vec4(v0, 1.0f));
             v1 = glm::vec3(modelMatrix * glm::vec4(v1, 1.0f));
             v2 = glm::vec3(modelMatrix * glm::vec4(v2, 1.0f));
 
-            float t;
-            if (intersectRayTriangle(ray_origin, ray_dir, v0, v1, v2, t))
+            float t, u, v;
+
+            if (intersectRayTriangle(ray_origin, ray_dir, v0, v1, v2, t, u, v))
             {
                 if (t < closestT)
                 {
                     closestT = t;
+
+                    float w = 1.0f - u - v;
+
+                    glm::vec2 hitUV =
+                        w * uv0 +
+                        u * uv1 +
+                        v * uv2;
+
                     outHitPoint = ray_origin + t * ray_dir;
+
+                    outHitUV = glm::vec2(hitUV.x, hitUV.y);
+
+
                     hit = true;
                 }
             }
+
         }
     }
 
     return hit;
+}
+
+
+
+
+
+std::vector<unsigned char> generateTexture()
+{
+    std::vector<unsigned char> data(IMG_WIDTH * IMG_HEIGHT * 4); // RGBA
+
+    for (int y = 0; y < IMG_HEIGHT; y++)
+    {
+        for (int x = 0; x < IMG_WIDTH; x++)
+        {
+            int index = (y * IMG_WIDTH + x) * 4;
+
+            // Simple gradient
+            data[index + 0] =  255;  // R
+            data[index + 1] =  255; // G
+            data[index + 2] = 128;  // B
+            data[index + 3] = 0; // A
+            
+        }
+    }
+
+    return data;
+}
+
+
+void paintBrush(
+    std::vector<unsigned char>& texData,
+    int texWidth,
+    int texHeight,
+    int centerX,
+    int centerY,
+    int radius,
+    glm::vec4 color)   // color in 0–1 range
+{
+    int startX = std::max(0, centerX - radius);
+    int endX = std::min(texWidth - 1, centerX + radius);
+    int startY = std::max(0, centerY - radius);
+    int endY = std::min(texHeight - 1, centerY + radius);
+
+    for (int y = startY; y <= endY; y++)
+    {
+        for (int x = startX; x <= endX; x++)
+        {
+            int dx = x - centerX;
+            int dy = y - centerY;
+
+            if (dx * dx + dy * dy <= radius * radius)
+            {
+                int index = (y * texWidth + x) * 4;
+
+                texData[index + 0] = color.r * 255;
+                texData[index + 1] = color.g * 255;
+                texData[index + 2] = color.b * 255;
+                texData[index + 3] = color.a * 255;
+            }
+        }
+    }
 }
