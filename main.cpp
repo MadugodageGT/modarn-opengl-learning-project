@@ -759,8 +759,8 @@ std::vector<unsigned char> generateTexture()
             // Simple gradient
             data[index + 0] =  255;  // R
             data[index + 1] =  255; // G
-            data[index + 2] = 128;                                      // B
-            data[index + 3] = 0;                        // A
+            data[index + 2] = 128;  // B
+            data[index + 3] = 0; // A
             
         }
     }
