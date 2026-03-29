@@ -10,14 +10,14 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
+
 
 #include "Shader.h"
 #include "Camera.h"
 #include "OrbitCamera.h"
 #include "Model.h"
+#include "Resource_manager.h"
+
 
 // Vector to save grid vertices
 std::vector<float> gridVertices;
@@ -187,8 +187,10 @@ int main() {
 
 
     // Shaders
-    Shader ourShader("model.vert", "model.frag");
-    Shader gridShader("grid.vert", "grid.frag");
+    //Shader ourShader("model.vert", "model.frag");
+    //Shader gridShader("grid.vert", "grid.frag");
+
+    ResourceManager::LoadShader("model.vert", "model.frag","modelShader");
 
     // ImGui setup
     IMGUI_CHECKVERSION();
@@ -356,9 +358,6 @@ int main() {
     glDeleteVertexArrays(1, &gridVAO);
     glDeleteBuffers(1, &gridVBO);
 
-
-    ourShader.~Shader();
-	gridShader.~Shader();
 
 
     glfwDestroyCursor(crosshairCursor);

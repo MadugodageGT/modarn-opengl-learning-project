@@ -17,7 +17,6 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-//#include <map>
 #include <vector>
 
 class Model {
@@ -33,11 +32,13 @@ public:
 		std::cout << "Loaded meshes: " << meshes.size() << std::endl;
 	};
 	void Draw(Shader& shader);
+	void loadModel(std::string path);
+	void clear();
 
 private:
 
 
-	void loadModel(std::string path);
+
 	void processNode(aiNode* node, const aiScene* scene);
 	Mesh processMesh(aiMesh* mesh, const aiScene* scene);
 	std::vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName);

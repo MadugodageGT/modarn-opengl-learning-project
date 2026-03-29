@@ -56,7 +56,7 @@ void Mesh::Draw(Shader &shader) {
 		else if (name == "texture_specular")
 			number = std::to_string(specularNr++);
 
-		shader.setFloat(("material." + name + number).c_str(), i);
+		shader.SetFloat(("material." + name + number).c_str(), i);
 		glBindTexture(GL_TEXTURE_2D, textures[i].id);
 	}
 	glActiveTexture(GL_TEXTURE0);
@@ -67,4 +67,23 @@ void Mesh::Draw(Shader &shader) {
 	glBindVertexArray(0);
 	glActiveTexture(GL_TEXTURE0);
 
+}
+
+void Mesh::clear()
+{
+	if (VAO) glDeleteVertexArrays(1, &VAO);
+	if (VBO) glDeleteBuffers(1, &VBO);
+	if (EBO) glDeleteBuffers(1, &EBO);
+
+	VAO = VBO = EBO = 0;
+
+	for (auto& tex : textures)
+	{
+		if (tex.id)
+			glDeleteTextures(1, &tex.id);
+
+		tex.id = 0;
+	}
+
+	textures.clear();
 }

@@ -177,3 +177,10 @@ unsigned int Model::TextureFromFile(const char* path, const std::string& directo
 
 	return textureID;
 }
+
+void Model::clear() {
+	for (unsigned int i = 0; i < meshes.size(); i++)
+		meshes[i].clear();
+	meshes.clear();
+	textures_loaded.clear();
+}
